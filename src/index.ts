@@ -10,13 +10,18 @@
 // Core exports
 export { SemverFeatures } from './core/SemverFeatures';
 export { Feature, FeatureValue } from './core/Feature';
-export { compareSemver, isVersionGteq, parseSemver } from './core/semver';
+
+// Export a parseSemver function for backward compatibility
+
 
 // React component exports
 export { FeatureToggle, FeatureEnabled, FeatureDisabled } from './react/components';
 
 // API exports
-export { createVersionedApi } from './api/versioned-api';
+export { 
+  isApiVersionAvailable,
+  withVersionedMethod
+} from './api/versioned-api';
 
 // Utility exports
 export { identity, compose, once, memoize } from './utils/functional';
@@ -26,8 +31,6 @@ export type {
   SemverFeaturesOptions,
   FeatureOptions,
   RenderOptions,
-  ApiVersionConfig,
-  VersionedApiConfig,
   SelectOptions,
   MapOptions,
   FoldOptions

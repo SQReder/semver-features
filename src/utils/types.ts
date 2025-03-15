@@ -81,31 +81,6 @@ export interface RenderComponentOptions<C> {
 }
 
 /**
- * Configuration for a single API version
- */
-export interface ApiVersionConfig<T> {
-  /**
-   * Minimum semver version required for this API version
-   */
-  minVersion: string;
-  
-  /**
-   * API methods
-   */
-  [methodName: string]: any;
-}
-
-/**
- * Configuration for versioned API
- */
-export interface VersionedApiConfig<T extends Record<string, any>> {
-  /**
-   * Available API versions
-   */
-  versions: Record<string, ApiVersionConfig<T>>;
-}
-
-/**
  * Options for select transformation
  */
 export interface SelectOptions<E, D> {

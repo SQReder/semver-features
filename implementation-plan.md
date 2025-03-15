@@ -8,8 +8,7 @@ src/
 ├── index.ts                # Main exports
 ├── core/
 │   ├── SemverFeatures.ts   # Main feature manager
-│   ├── Feature.ts          # Feature entity implementation
-│   └── semver.ts           # Semver comparison utilities
+│   └── Feature.ts          # Feature entity implementation
 ├── react/
 │   └── components.tsx      # React integration components
 ├── api/
@@ -184,7 +183,8 @@ class Feature<T = unknown, U = unknown> {
   
   constructor(options: FeatureOptions) {
     this.name = options.name;
-    this.enabled = compareSemver(options.currentVersion, options.minVersion) >= 0;
+    // Using semver.gte from the semver package
+    this.enabled = semver.gte(options.currentVersion, options.minVersion);
   }
 
   get isEnabled(): boolean {
@@ -299,13 +299,13 @@ function createVersionedApi<T extends Record<string, any>>(
   const sortedVersionKeys = Object.keys(config.versions).sort((a, b) => {
     const versionA = config.versions[a].minVersion;
     const versionB = config.versions[b].minVersion;
-    return -compareSemver(versionA, versionB); // Negative for descending order
+    return -semver.compare(versionA, versionB); // Negative for descending order
   });
 
   // Find the highest compatible version
   const activeVersionKey = sortedVersionKeys.find(key => {
     const minVersion = config.versions[key].minVersion;
-    return compareSemver(currentVersion, minVersion) >= 0;
+    return semver.gte(currentVersion, minVersion);
   });
 
   if (!activeVersionKey) {
@@ -329,7 +329,6 @@ function createVersionedApi<T extends Record<string, any>>(
 ## 4. Testing Strategy
 
 1. **Unit Tests**
-   - Test version comparison logic
    - Test feature enablement based on versions
    - Test all transformation methods with different types
 
@@ -347,7 +346,7 @@ function createVersionedApi<T extends Record<string, any>>(
 
 1. **Week 1: Core Framework**
    - Implement SemverFeatures and Feature classes
-   - Basic version comparison utilities
+   - Basic version comparison with semver
    - Simple execution methods
 
 2. **Week 2: React Integration**
@@ -373,7 +372,7 @@ function createVersionedApi<T extends Record<string, any>>(
 ## 6. Dependencies
 
 - **Core Library**:
-  - `semver` for version comparison or custom implementation
+  - `semver` for version comparison
 
 - **Development**:
   - TypeScript for type safety
@@ -400,4 +399,4 @@ function createVersionedApi<T extends Record<string, any>>(
    - Basic usage patterns
    - React integration examples
    - Complex transformation examples
-   - API versioning examples 
+   - API versioning examples

@@ -24,6 +24,7 @@
   "devDependencies": {
     "@types/jest": "^29.5.0",
     "@types/react": "^18.0.0",
+    "@types/semver": "^7.5.8",
     "@typescript-eslint/eslint-plugin": "^5.57.0",
     "@typescript-eslint/parser": "^5.57.0",
     "eslint": "^8.37.0",
@@ -39,5 +40,8 @@
     "react": {
       "optional": true
     }
+  },
+  "dependencies": {
+    "semver": "^7.7.1"
   }
 }

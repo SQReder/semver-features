@@ -3,8 +3,8 @@
  */
 
 import { Feature } from './Feature';
-import type { SemverFeaturesOptions, VersionedApiConfig } from '../utils/types';
-import { createVersionedApi } from '../api/versioned-api';
+import type { SemverFeaturesOptions } from '../utils/types';
+import { isApiVersionAvailable, withVersionedMethod } from '../api/versioned-api';
 
 /**
  * Main class for managing semver-based feature toggles
@@ -54,18 +54,5 @@ export class SemverFeatures {
     // Store for future reference
     this.features.set(name, feature);
     return feature;
-  }
-
-  /**
-   * Create a versioned API with different implementations based on versions
-   * @param name API name for identification
-   * @param config Configuration with different API versions
-   * @returns API instance with methods from the highest compatible version
-   */
-  createVersionedApi<T extends Record<string, any>>(
-    name: string, 
-    config: VersionedApiConfig<T>
-  ): T {
-    return createVersionedApi<T>(this.version, config);
   }
 } 

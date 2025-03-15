@@ -2,7 +2,7 @@
  * Feature entity implementation
  */
 
-import { isVersionGteq } from './semver';
+import * as semver from 'semver';
 import type { FeatureOptions, RenderOptions, SelectOptions, MapOptions, FoldOptions, ExecuteOptions, RenderComponentOptions } from '../utils/types';
 
 /**
@@ -76,7 +76,7 @@ export class Feature<T = unknown, U = unknown> {
   constructor(options: FeatureOptions) {
     this.name = options.name;
     // Feature is enabled if current version >= min version
-    this.enabled = isVersionGteq(options.currentVersion, options.minVersion);
+    this.enabled = semver.gte(options.currentVersion, options.minVersion);
   }
 
   /**
@@ -112,6 +112,24 @@ export class Feature<T = unknown, U = unknown> {
     if (this.enabled) {
       fn();
     }
+  }
+
+  /**
+   * Create a method that's only available when this feature is enabled
+   * This provides a type-safe way to access methods that depend on this feature
+   * 
+   * @param implementation Method implementation to use when feature is enabled
+   * @returns A function that returns null when feature is not enabled
+   */
+  createMethod<TArgs extends any[], TResult>(
+    implementation: (...args: TArgs) => TResult
+  ): (...args: TArgs) => TResult | null {
+    return (...args: TArgs): TResult | null => {
+      if (this.enabled) {
+        return implementation(...args);
+      }
+      return null;
+    };
   }
 
   /**

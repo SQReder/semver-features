@@ -1,46 +1,42 @@
 /**
- * Versioned API implementation
+ * Versioned API implementation with improved type safety
  */
 
-import { compareSemver } from '../core/semver';
-import type { VersionedApiConfig, ApiVersionConfig } from '../utils/types';
+import * as semver from 'semver';
 
 /**
- * Create a versioned API that automatically selects the highest compatible version
+ * Check if a specific API version is available based on the current application version
+ * 
  * @param currentVersion Current application version
- * @param config Configuration with different API versions
- * @returns API instance with methods from the highest compatible version
+ * @param minVersion Minimum version required for the API version
+ * @returns True if the API version is available
  */
-export function createVersionedApi<T extends Record<string, any>>(
+export function isApiVersionAvailable(
   currentVersion: string,
-  config: VersionedApiConfig<T>
-): T {
-  // Sort versions by semver (highest to lowest)
-  const sortedVersionKeys = Object.keys(config.versions).sort((a, b) => {
-    const versionA = config.versions[a].minVersion;
-    const versionB = config.versions[b].minVersion;
-    return -compareSemver(versionA, versionB); // Negative for descending order
-  });
+  minVersion: string
+): boolean {
+  return semver.compare(currentVersion, minVersion) >= 0;
+}
 
-  // Find the highest compatible version
-  const activeVersionKey = sortedVersionKeys.find(key => {
-    const minVersion = config.versions[key].minVersion;
-    return compareSemver(currentVersion, minVersion) >= 0;
-  });
-
-  if (!activeVersionKey) {
-    throw new Error(`No compatible API version found for ${currentVersion}`);
+/**
+ * Version-specific API helper that provides type-safe access to version-specific methods
+ * 
+ * @param currentVersion Current application version
+ * @param minVersion Minimum version required for this API version
+ * @param api The API instance
+ * @param method Function to execute if version is available
+ * @param fallback Function to execute if version is not available
+ * @returns Result of the method or fallback
+ */
+export function withVersionedMethod<TApi, TResult>(
+  currentVersion: string,
+  minVersion: string,
+  api: TApi,
+  method: (api: TApi) => TResult,
+  fallback: () => TResult
+): TResult {
+  if (isApiVersionAvailable(currentVersion, minVersion)) {
+    return method(api);
   }
-
-  const activeVersion = config.versions[activeVersionKey];
-  
-  // Create proxy to handle method calls
-  return new Proxy({} as T, {
-    get(target, prop: string) {
-      if (typeof activeVersion[prop] === 'function') {
-        return activeVersion[prop].bind(activeVersion);
-      }
-      return activeVersion[prop];
-    }
-  });
+  return fallback();
 } 
