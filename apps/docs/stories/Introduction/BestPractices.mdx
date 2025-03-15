@@ -1,0 +1,323 @@
+import { Meta } from '@storybook/blocks';
+
+<Meta title="Introduction/Best Practices" />
+
+# Best Practices
+
+Guidelines and recommendations for effectively using semver-features in your application.
+
+## Naming Conventions
+
+### Feature Names
+
+Use descriptive, consistent naming for your features:
+
+✅ **Good examples:**
+- `userProfileEdit`
+- `enhancedSearchFeature`
+- `darkThemeSupport`
+
+❌ **Bad examples:**
+- `feat1` (not descriptive)
+- `new-thing` (inconsistent style)
+- `THE_AMAZING_FEATURE` (shouting)
+
+### Organization
+
+Group related features together logically:
+
+```js
+// User-related features
+const userFeatures = {
+  profile: features.register('user.profile', '1.0.0'),
+  settings: features.register('user.settings', '1.1.0'),
+  avatars: features.register('user.avatars', '1.2.0')
+};
+
+// Admin-related features
+const adminFeatures = {
+  dashboard: features.register('admin.dashboard', '1.0.0'),
+  userManagement: features.register('admin.userManagement', '1.1.0')
+};
+```
+
+## Version Requirements
+
+### Semantic Versioning Guidelines
+
+Follow standard semantic versioning practices:
+
+- **MAJOR** version for incompatible API changes
+- **MINOR** version for new backward-compatible features
+- **PATCH** version for backward-compatible bug fixes
+
+### Prerelease Identifiers
+
+Use prerelease identifiers for beta or experimental features:
+
+```js
+// Feature available in beta releases
+const betaFeature = features.register('newEditor', '1.2.0-beta.1');
+
+// Feature available in all releases
+const stableFeature = features.register('basicEditor', '1.1.0');
+```
+
+## Feature Composition
+
+### Use Composition for Complex Logic
+
+Combine features using logical operators for complex requirements:
+
+```js
+import { compose } from 'semver-features';
+
+// User must have both permissions
+const canEditProfile = compose.and([userFeatures.profile, permissionFeatures.edit]);
+
+// Either condition allows access
+const hasAdminAccess = compose.or([roleFeatures.admin, roleFeatures.superUser]);
+
+// Invert a feature
+const classicTheme = compose.not(themeFeatures.modern);
+```
+
+### Keep Compositions Simple
+
+Avoid deeply nested compositions that are hard to understand:
+
+```js
+// ❌ Difficult to understand
+const complexFeature = compose.or([
+  compose.and([featureA, compose.not(featureB)]),
+  compose.and([featureC, featureD, compose.not(featureE)])
+]);
+
+// ✅ Break into smaller, named compositions
+const condition1 = compose.and([featureA, compose.not(featureB)]);
+const condition2 = compose.and([featureC, featureD, compose.not(featureE)]);
+const accessFeature = compose.or([condition1, condition2]);
+```
+
+## Error Handling
+
+### Graceful Degradation
+
+Always provide fallbacks when features are disabled:
+
+```jsx
+<FeatureToggle
+  feature={newUIFeature}
+  enabled={<NewComponent />}
+  disabled={<LegacyComponent />} // Always provide a meaningful fallback
+/>
+```
+
+### Default Values
+
+Provide sensible defaults when getting values from disabled features:
+
+```js
+// Specify a default value for disabled features
+const config = configFeature.getValue({
+  theme: 'light',
+  showHelp: true,
+  refreshRate: 30
+});
+```
+
+## Testing
+
+### Test Both States
+
+Always test both enabled and disabled states:
+
+```js
+// Test with feature enabled
+features.setVersion('2.0.0');
+expect(newFeature.isEnabled()).toBe(true);
+// Verify the enabled behavior
+
+// Test with feature disabled
+features.setVersion('1.0.0');
+expect(newFeature.isEnabled()).toBe(false);
+// Verify the disabled behavior
+```
+
+### Feature Test Helpers
+
+Create test helpers to simplify testing:
+
+```js
+// Helper function to test both enabled and disabled states
+function testFeatureStates(feature, enabledTest, disabledTest) {
+  // Test enabled state
+  features.setVersion('999.0.0'); // Very high version to ensure enabled
+  expect(feature.isEnabled()).toBe(true);
+  enabledTest();
+  
+  // Test disabled state
+  features.setVersion('0.0.1'); // Very low version to ensure disabled
+  expect(feature.isEnabled()).toBe(false);
+  disabledTest();
+}
+
+// Usage
+testFeatureStates(
+  myFeature,
+  () => {
+    // Test enabled behavior
+  },
+  () => {
+    // Test disabled behavior
+  }
+);
+```
+
+## React Integration
+
+### Use Context for Features
+
+Provide features through React Context:
+
+```jsx
+// Create a context provider
+function FeaturesProvider({ children, version }) {
+  const featureManager = new SemverFeatures({ version });
+  
+  // Register features
+  const features = {
+    newUI: featureManager.register('newUI', '1.2.0'),
+    enhancedSearch: featureManager.register('enhancedSearch', '1.3.0')
+  };
+  
+  return (
+    <FeaturesContext.Provider value={{ manager: featureManager, features }}>
+      {children}
+    </FeaturesContext.Provider>
+  );
+}
+
+// Use the context in components
+function MyComponent() {
+  const { features } = useFeatures();
+  
+  return (
+    <FeatureToggle
+      feature={features.newUI}
+      enabled={<NewUI />}
+      disabled={<OldUI />}
+    />
+  );
+}
+```
+
+### Component Composition
+
+Create reusable components that accept features as props:
+
+```jsx
+// A feature-aware button component
+function FeatureButton({ feature, ...props }) {
+  return (
+    <FeatureToggle
+      feature={feature}
+      enabled={<Button variant="primary" {...props} />}
+      disabled={<Button variant="secondary" {...props} />}
+    />
+  );
+}
+
+// Usage
+<FeatureButton 
+  feature={newUIFeature}
+  onClick={handleClick}
+>
+  Submit
+</FeatureButton>
+```
+
+## Documentation
+
+### Document Feature Requirements
+
+Document the purpose and version requirements for each feature:
+
+```js
+/**
+ * Enhanced search feature
+ * Available in version 1.2.0 and above
+ * Provides advanced search capabilities including:
+ * - Fuzzy matching
+ * - Filters
+ * - Result highlighting
+ */
+const enhancedSearch = features.register('enhancedSearch', '1.2.0');
+```
+
+### Maintain Feature Registry
+
+Keep a centralized registry of all features:
+
+```js
+// features.js - Central registry of all features
+export const features = new SemverFeatures({ version: APP_VERSION });
+
+export default {
+  // User features
+  userProfile: features.register('user.profile', '1.0.0'),
+  userSettings: features.register('user.settings', '1.1.0'),
+  
+  // UI features
+  darkMode: features.register('ui.darkMode', '1.2.0'),
+  responsiveLayout: features.register('ui.responsiveLayout', '1.0.0'),
+  
+  // Admin features
+  adminDashboard: features.register('admin.dashboard', '1.5.0'),
+};
+```
+
+## Performance
+
+### Memoize Feature Status
+
+Cache feature status checks when appropriate:
+
+```jsx
+import { useMemo } from 'react';
+
+function MyComponent({ feature }) {
+  // Memoize the feature status to prevent unnecessary re-renders
+  const isEnabled = useMemo(() => feature.isEnabled(), [feature]);
+  
+  return (
+    <div>
+      {isEnabled ? <EnabledContent /> : <DisabledContent />}
+    </div>
+  );
+}
+```
+
+### Lazy Loading
+
+Use feature toggles with lazy loading to reduce bundle size:
+
+```jsx
+import React, { lazy, Suspense } from 'react';
+
+// Lazy load components based on feature status
+const NewComponent = lazy(() => import('./NewComponent'));
+const LegacyComponent = lazy(() => import('./LegacyComponent'));
+
+function MyComponent({ feature }) {
+  return (
+    <Suspense fallback={<Loading />}>
+      <FeatureToggle
+        feature={feature}
+        enabled={<NewComponent />}
+        disabled={<LegacyComponent />}
+      />
+    </Suspense>
+  );
+}
+``` 

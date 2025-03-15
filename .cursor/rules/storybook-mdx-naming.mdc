@@ -1,0 +1,69 @@
+# Storybook MDX Naming Conventions
+
+Rules for naming Storybook MDX documentation files.
+
+<rule>
+name: storybook_mdx_naming
+description: Standards for naming Storybook MDX documentation files
+
+filters:
+  # Match MDX files
+  - type: file_extension
+    pattern: "\\.mdx$"
+  # Match files in stories directory
+  - type: path
+    pattern: "stories/"
+  # Match file creation events
+  - type: event
+    pattern: "file_create"
+
+actions:
+  - type: reject
+    conditions:
+      - pattern: ".*\\.stories\\.mdx$"
+        message: "Storybook MDX files should be named 'Content.mdx', not 'Content.stories.mdx'"
+
+  - type: suggest
+    message: |
+      When creating Storybook documentation files:
+
+      1. Use simple `.mdx` extension, not `.stories.mdx`:
+         ```
+         ✅ GettingStarted.mdx
+         ❌ GettingStarted.stories.mdx
+         ```
+
+      2. Use PascalCase for filenames:
+         ```
+         ✅ GettingStarted.mdx
+         ❌ getting-started.mdx
+         ```
+
+      3. Include the Meta component at the top:
+         ```mdx
+         import { Meta } from '@storybook/blocks';
+
+         <Meta title="Section/Title" />
+         
+         # Your documentation content
+         ```
+
+      4. For component stories, create separate files:
+         ```
+         ComponentName.stories.tsx  (for component examples)
+         ComponentName.mdx          (for documentation)
+         ```
+
+examples:
+  - input: |
+      # Bad: Using stories.mdx pattern
+      Introduction.stories.mdx
+      
+      # Good: Using direct .mdx pattern
+      Introduction.mdx
+    output: "Correctly named Storybook documentation file"
+
+metadata:
+  priority: high
+  version: 1.0
+</rule> 
