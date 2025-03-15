@@ -2,11 +2,11 @@
 
 ## Overview
 
-This library provides an elegant solution for automatically enabling features based on semantic versioning. Instead of manually managing feature flags across different releases, it uses the version specified in your package.json to determine which features should be active. This approach streamlines release management, especially when developing multiple parallel releases.
+This library provides an elegant solution for automatically enabling features based on semantic versioning. Instead of manually managing feature flags across different releases, it uses the application version to determine which features should be active. This approach streamlines release management, especially when developing multiple parallel releases.
 
 ## Core Concept
 
-When a team develops features that should be released in specific versions, the library automatically enables those features when the application's version reaches or exceeds the specified threshold. The library reads the current version from package.json and manages feature availability without requiring explicit conditional statements throughout the codebase.
+When a team develops features that should be released in specific versions, the library automatically enables those features when the application's version reaches or exceeds the specified threshold. The library requires explicit configuration with the current application version, ensuring clear dependency management and predictable behavior. It manages feature availability without requiring explicit conditional statements throughout the codebase.
 
 ## API and Behavior Description
 
@@ -15,8 +15,10 @@ When a team develops features that should be released in specific versions, the 
 The library provides a simple API for registering features with their minimum version requirements:
 
 ```typescript
-// Initialize the feature manager
-const features = new SemverFeatures();  // Automatically reads from package.json
+// Initialize the feature manager with explicit version (required)
+const features = new SemverFeatures({ 
+  version: '1.3.5'  // Explicitly provide current application version
+});  
 
 // Register features with minimum version requirements
 const newUI = features.register('newUI', '1.2.0');          // Enabled in v1.2.0+
@@ -55,11 +57,22 @@ function Dashboard() {
       {/* Conditional rendering */}
       {analyticsEngine.isEnabled && <AnalyticsProvider />}
       
-      {/* Component with props selector */}
-      {newUI.select({
+      {/* Legacy component selector (original API) */}
+      {newUI.renderComponent({
         enabled: () => <NewHeader subtitle="Improved version" />,
         disabled: () => <OldHeader />
       })}
+      
+      {/* New pattern with value selection and mapping */}
+      {newUI
+        .select({
+          enabled: { subtitle: "Improved version", showBeta: true },
+          disabled: "Legacy Header"
+        })
+        .map({
+          enabled: (config) => <NewHeader {...config} />,
+          disabled: (title) => <OldHeader title={title} />
+        })}
     </>
   );
 }
@@ -70,6 +83,7 @@ Key behaviors:
 - Both simple and complex component switching is supported
 - No explicit conditional statements required in components
 - Works with both function and class components
+- Advanced value transformation with select/map/fold pattern
 
 ### 4. Conditional Logic
 
@@ -156,6 +170,71 @@ Key behaviors:
 - Method signatures can evolve while maintaining backward compatibility
 - Fallback versions ensure graceful degradation
 
+### 6. Value Transformation
+
+The library provides powerful value transformation capabilities through a functional programming inspired API:
+
+```typescript
+// Select different values based on feature status
+const config = newUI.select({
+  enabled: { maxItems: 20, showPreview: true },
+  disabled: { maxItems: 10, showPreview: false }
+});
+
+// Access current value
+console.log(config.value.maxItems);
+
+// Transform values with different output types (bifunctor map)
+const element = newUI
+  .select({ 
+    enabled: userData,
+    disabled: "guest-user"
+  })
+  .map({ 
+    enabled: (data) => <UserProfile data={data} />, // Returns React component
+    disabled: (id) => <GuestBanner id={id} />      // Returns different component
+  });
+
+// Transform values to a common type (monadic fold)
+const message = newUI
+  .select({
+    enabled: { user: currentUser, count: notifications.length },
+    disabled: { defaultCount: 0 }
+  })
+  .fold({
+    enabled: (data) => `Welcome ${data.user.name}! You have ${data.count} notifications.`,
+    disabled: (legacy) => `Welcome guest! Please sign in to see notifications.`
+  });
+
+// Complex data transformation
+const processedData = experimentalApi
+  .select({
+    enabled: rawData.newFormat,
+    disabled: rawData.legacyFormat
+  })
+  .fold({
+    enabled: (data) => processEnhancedData(data),
+    disabled: (data) => convertAndProcessLegacyFormat(data)
+  });
+```
+
+Key behaviors:
+- **Type-Safe Selection**: `.select()` chooses between enabled/disabled values with appropriate types
+- **Bifunctor Mapping**: `.map()` transforms values while preserving the feature toggle structure
+- **Monadic Folding**: `.fold()` collapses the toggle structure into a single unified type
+- **Value Access**: Direct access to the current value via `.value` property
+- **Full Type Safety**: TypeScript ensures correct handling of different types throughout the chain
+- **Declarative Style**: Transformations expressed as composable function chains
+
+This functional approach provides several advantages:
+- Eliminates conditional expressions and ternaries
+- Maintains type safety through transformations
+- Ensures all code paths are handled
+- Creates predictable, composable patterns
+- Supports complex data transformations with minimal boilerplate
+
+These transformation methods are particularly useful when different feature versions work with different data structures or when UI components require different prop shapes based on feature status.
+
 ## Feature Behavior
 
 The library automatically determines feature availability with these behaviors:
@@ -168,7 +247,7 @@ The library automatically determines feature availability with these behaviors:
 
 ## Benefits
 
-- **Zero configuration** - Automatically uses package.json version
+- **Explicit configuration** - Clear version dependencies with required version specification
 - **Type-safe** - No string identifiers at usage points
 - **Declarative** - Focus on what features do, not when they're available
 - **Cleaner code** - Eliminates conditionals and reduces boilerplate
@@ -181,6 +260,7 @@ The library automatically determines feature availability with these behaviors:
 - Features are enabled based solely on version numbers, not on user roles or other runtime factors
 - Once a feature is enabled for a specific version, it remains enabled for all higher versions
 - Works best in combination with proper semantic versioning practices
+- Version must always be explicitly provided, making version dependencies clear
 - Can integrate with existing feature flag systems for complex scenarios
 
 ## Potential Extensions
@@ -188,4 +268,6 @@ The library automatically determines feature availability with these behaviors:
 - Integration with A/B testing frameworks
 - Support for feature deprecation and sunsetting
 - Optional runtime overrides for testing and debugging
-- Analytics tracking for feature adoption across versions 
+- Analytics tracking for feature adoption across versions
+- Advanced transformation patterns for complex state management
+- Integration with state management libraries like Redux or MobX 
