@@ -1,6 +1,7 @@
 ---
 description: Auto-Commit AI Agent Changes
 globs: *.*
+alwaysApply: true
 ---
 # Auto-Commit AI Agent Changes
 
