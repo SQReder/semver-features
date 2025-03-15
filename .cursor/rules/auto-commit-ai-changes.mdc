@@ -1,0 +1,157 @@
+---
+description: Auto-Commit AI Agent Changes
+globs: *.*
+---
+# Auto-Commit AI Agent Changes
+
+Automatically commits significant changes made by the Cursor AI agent with meaningful commit messages.
+
+<rule>
+name: auto_commit_ai_changes
+description: Automatically commits significant changes made by the Cursor AI agent following conventional commit format
+
+filters:
+  # Match events where the AI agent has made changes
+  - type: event
+    pattern: "ai_change_complete"
+  
+  # Only trigger when significant changes are detected
+  - type: diff_stats
+    min_lines_changed: 5
+
+actions:
+  - type: execute_script
+    language: bash
+    script: |
+      #!/bin/bash
+      set -e
+      
+      # Function to extract task/issue ID from contextual data
+      extract_task_id() {
+        local context="$1"
+        # Look for common issue ID patterns (JIRA, GitHub, etc.)
+        local task_id=$(echo "$context" | grep -oE '([A-Z]+-[0-9]+|#[0-9]+)' | head -1)
+        echo "$task_id"
+      }
+      
+      # Function to determine commit type based on changes
+      determine_commit_type() {
+        local files_changed="$1"
+        local diff_content="$2"
+        
+        # Default to feat if we can't determine
+        local commit_type="feat"
+        
+        # Check for test changes
+        if echo "$files_changed" | grep -qE '\.spec\.|\.test\.|test/|tests/'; then
+          commit_type="test"
+        # Check for documentation changes
+        elif echo "$files_changed" | grep -qE 'README|\.md$|docs/|documentation/'; then
+          commit_type="docs"
+        # Check for bug fixes
+        elif echo "$diff_content" | grep -qiE 'fix|bug|issue|error|crash|problem|resolve'; then
+          commit_type="fix"
+        # Check for refactoring
+        elif echo "$diff_content" | grep -qiE 'refactor|clean|optimize|performance|improve'; then
+          commit_type="refactor"
+        # Check for style changes
+        elif echo "$files_changed" | grep -qE '\.css$|\.scss$|\.less$|\.style'; then
+          commit_type="style"
+        fi
+        
+        echo "$commit_type"
+      }
+      
+      # Get list of changed files
+      files_changed=$(git diff --name-only --cached)
+      if [ -z "$files_changed" ]; then
+        files_changed=$(git diff --name-only)
+        # Stage all changes if nothing is staged
+        if [ -n "$files_changed" ]; then
+          git add .
+        else
+          echo "No changes detected to commit"
+          exit 0
+        fi
+      fi
+      
+      # Get diff content for analysis
+      diff_content=$(git diff --cached)
+      
+      # Get contextual data from recent AI interactions
+      ai_context="${AI_CONTEXT:-AI changes}"
+      
+      # Extract task ID if present
+      task_id=$(extract_task_id "$ai_context")
+      task_id_suffix=""
+      if [ -n "$task_id" ]; then
+        task_id_suffix=" (${task_id})"
+      fi
+      
+      # Determine commit type
+      commit_type=$(determine_commit_type "$files_changed" "$diff_content")
+      
+      # Generate commit message
+      commit_summary=$(echo "$ai_context" | head -1 | cut -c1-50)
+      
+      # Create detailed message
+      commit_message="${commit_type}: ${commit_summary}${task_id_suffix}
+
+$(echo "$ai_context" | sed -n '2,$p' | cut -c1-72 | sed 's/^/- /')
+
+Files changed:
+$(echo "$files_changed" | sed 's/^/- /' | head -5)
+$([ $(echo "$files_changed" | wc -l) -gt 5 ] && echo "- ... and $(( $(echo "$files_changed" | wc -l) - 5 )) more files")
+"
+      
+      # Perform the commit
+      git commit -m "$commit_message"
+      
+      # Notify the user
+      echo "Successfully committed AI changes with message:"
+      echo "$commit_message"
+
+variables:
+  AI_CONTEXT:
+    description: Context from the AI agent about the changes made
+    type: string
+    default: "AI-generated changes"
+
+examples:
+  - input: |
+      # AI completes a feature implementation
+      * User asked to implement a login feature
+      * AI created authentication files
+      * AI updated related components
+    output: |
+      feat: Implement user authentication and login feature
+      
+      - Created authentication service with JWT handling
+      - Added login form components
+      - Updated API endpoints for authentication
+      
+      Files changed:
+      - src/services/auth.ts
+      - src/components/LoginForm.tsx
+      - src/api/endpoints.ts
+      - src/store/authSlice.ts
+      - src/utils/validation.ts
+
+  - input: |
+      # AI fixes a bug
+      * User reported login button not working 
+      * AI fixed event handler in LoginForm
+    output: |
+      fix: Resolve login button click event handler issue
+      
+      - Fixed event propagation in login form
+      - Updated event handler to properly call authentication service
+      
+      Files changed:
+      - src/components/LoginForm.tsx
+      - src/services/auth.ts
+
+metadata:
+  priority: medium
+  version: 1.0
+</rule> 
