@@ -1,0 +1,27 @@
+# Source files
+src/
+
+# Examples
+examples/
+
+# Test files
+**/*.test.ts
+**/*.spec.ts
+jest.config.js
+
+# Build artifacts
+.eslintrc
+.gitignore
+tsconfig.json
+.github/
+.idea/
+.vscode/
+
+# Documentation files
+docs/
+*.md
+!README.md
+!LICENSE
+
+# Configuration files
+.npmrc 
