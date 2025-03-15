@@ -1,0 +1,53 @@
+---
+description: MDX Story Naming Convention
+globs: *.mdx
+alwaysApply: true
+---
+# MDX Story Naming Convention
+
+Rules for naming MDX story files in the repository.
+
+<rule>
+name: mdx_naming_convention
+description: Enforces the correct naming pattern for MDX story files
+
+filters:
+  # Match any MDX files
+  - type: file_extension
+    pattern: "\\.mdx$"
+  # Match file creation or rename events
+  - type: event
+    pattern: "file_create|file_rename"
+
+actions:
+  # Reject files with .stories.mdx pattern
+  - type: reject
+    conditions:
+      - pattern: "\\.stories\\.mdx$"
+        message: "MDX story files should use a .mdx extension, not .stories.mdx"
+
+  # Provide guidance for correct naming
+  - type: suggest
+    message: |
+      When creating MDX story files:
+
+      ✅ CORRECT: `ComponentName.mdx`
+      ❌ INCORRECT: `ComponentName.stories.mdx`
+
+      The .stories suffix is redundant for MDX files and should be omitted.
+
+examples:
+  - input: |
+      # Bad file names
+      Button.stories.mdx
+      Card.stories.mdx
+      
+      # Good file names
+      Button.mdx
+      Card.mdx
+    output: "Correctly named MDX story files"
+
+metadata:
+  priority: high
+  version: 1.0
+</rule> 
