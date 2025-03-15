@@ -3,12 +3,8 @@
  * Note: These components require React as a peer dependency
  */
 
-// Define fallback types for React when it's not available
-type ReactNodeType = any;
-// We'll use basic return types when JSX isn't available
-type ElementType = any;
-
-import type { Feature } from '../core/Feature';
+import * as React from 'react';
+import type { Feature } from 'semver-features';
 
 /**
  * Properties for the FeatureToggle component
@@ -22,23 +18,23 @@ interface FeatureToggleProps {
   /**
    * Content to render when feature is enabled
    */
-  enabled: ReactNodeType;
+  enabled: React.ReactNode;
   
   /**
    * Content to render when feature is disabled
    */
-  disabled?: ReactNodeType;
+  disabled?: React.ReactNode;
 }
 
 /**
  * Component that renders different content based on feature status
  */
-export function FeatureToggle(props: FeatureToggleProps): ElementType | null {
+export function FeatureToggle(props: FeatureToggleProps): React.ReactElement | null {
   const { feature, enabled, disabled } = props;
   
   return feature.isEnabled 
-    ? (enabled as ElementType) 
-    : (disabled as ElementType) || null;
+    ? (enabled as React.ReactElement) 
+    : (disabled as React.ReactElement) || null;
 }
 
 /**
@@ -53,16 +49,16 @@ interface FeatureEnabledProps {
   /**
    * Content to render when feature is enabled
    */
-  children: ReactNodeType;
+  children: React.ReactNode;
 }
 
 /**
  * Component that only renders content when feature is enabled
  */
-export function FeatureEnabled(props: FeatureEnabledProps): ElementType | null {
+export function FeatureEnabled(props: FeatureEnabledProps): React.ReactElement | null {
   const { feature, children } = props;
   
-  return feature.isEnabled ? (children as ElementType) : null;
+  return feature.isEnabled ? (children as React.ReactElement) : null;
 }
 
 /**
@@ -77,14 +73,14 @@ interface FeatureDisabledProps {
   /**
    * Content to render when feature is disabled
    */
-  children: ReactNodeType;
+  children: React.ReactNode;
 }
 
 /**
  * Component that only renders content when feature is disabled
  */
-export function FeatureDisabled(props: FeatureDisabledProps): ElementType | null {
+export function FeatureDisabled(props: FeatureDisabledProps): React.ReactElement | null {
   const { feature, children } = props;
   
-  return !feature.isEnabled ? (children as ElementType) : null;
+  return !feature.isEnabled ? (children as React.ReactElement) : null;
 } 

@@ -4,7 +4,7 @@
 
 import { Feature } from './Feature';
 import type { SemverFeaturesOptions } from '../utils/types';
-import { isApiVersionAvailable, withVersionedMethod } from '../api/versioned-api';
+import { isApiVersionAvailable } from '../api/versioned-api';
 
 /**
  * Main class for managing semver-based feature toggles

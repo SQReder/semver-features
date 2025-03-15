@@ -66,66 +66,61 @@ export interface RenderOptions<T, U> {
 }
 
 /**
- * Options for direct component rendering with a feature
+ * Options for React component rendering with a feature
  */
-export interface RenderComponentOptions<C> {
+export interface RenderComponentOptions<T, U> {
   /**
-   * Component to render when feature is enabled
+   * Function that returns the React component to render when feature is enabled
    */
-  enabled: C;
+  enabled: () => T;
   
   /**
-   * Component to render when feature is disabled
+   * Function that returns the React component to render when feature is disabled
    */
-  disabled: C;
+  disabled: () => U;
 }
 
 /**
- * Options for select transformation
+ * Options for selecting between enabled and disabled values
  */
-export interface SelectOptions<E, D> {
+export interface SelectOptions<T, U> {
   /**
    * Value to use when feature is enabled
    */
-  enabled: E;
+  enabled: T;
   
   /**
    * Value to use when feature is disabled
    */
-  disabled: D;
+  disabled: U;
 }
 
 /**
- * Options for map transformation
+ * Options for mapping between enabled and disabled values
  */
-export interface MapOptions<E, D, NE, ND> {
+export interface MapOptions<T, U, V, W> {
   /**
-   * Function to transform enabled value
+   * Function to transform the enabled value
    */
-  enabled: (value: E) => NE;
+  enabled: (value: T) => V;
   
   /**
-   * Function to transform disabled value
+   * Function to transform the disabled value
    */
-  disabled: (value: D) => ND;
+  disabled: (value: U) => W;
 }
 
 /**
- * Options for fold transformation
+ * Options for folding enabled and disabled values into a single result
  */
-export interface FoldOptions<E, D, R> {
+export interface FoldOptions<T, U, R> {
   /**
-   * Function to transform enabled value to result type
+   * Function to transform the enabled value to the result type
    */
-  enabled: (value: E) => R;
+  enabled: (value: T) => R;
   
   /**
-   * Function to transform disabled value to result type
+   * Function to transform the disabled value to the result type
    */
-  disabled: (value: D) => R;
-}
-
-/**
- * React specific types - only used when React is available
- */
-export type ReactComponent = ReactNodeType; 
+  disabled: (value: U) => R;
+} 
