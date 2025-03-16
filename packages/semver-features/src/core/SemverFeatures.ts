@@ -3,7 +3,7 @@
  */
 
 import { Feature } from './Feature';
-import type { SemverFeaturesOptions } from '../utils/types';
+import type { Semver, SemverFeaturesOptions } from '../utils/types';
 import { isApiVersionAvailable } from '../api/versioned-api';
 
 /**
@@ -33,12 +33,16 @@ export class SemverFeatures {
   }
 
   /**
-   * Register a new feature with version requirements
+   * Register a new feature with version requirements or explicit state
    * @param name Unique feature name
-   * @param minVersion Minimum version required for this feature
+   * @param minVersion Minimum version required for this feature,
+   *                  or a boolean to explicitly enable/disable
    * @returns Feature entity that can be used for checking and rendering
    */
-  register<T = unknown, U = unknown>(name: string, minVersion: string): Feature<T, U> {
+  register<T = unknown, U = unknown>(
+    name: string, 
+    minVersion: Semver | boolean
+  ): Feature<T, U> {
     // Return existing feature if already registered
     if (this.features.has(name)) {
       return this.features.get(name) as Feature<T, U>;

@@ -35,10 +35,19 @@ const newUI = features.register('newUI', '1.2.0');          // Enabled in v1.2.0
 const analyticsEngine = features.register('analytics', '1.3.0'); // Enabled in v1.3.0+
 const experimentalApi = features.register('expApi', '1.5.0-beta.1'); // Enabled in v1.5.0-beta.1+
 
+// Explicitly enabled or disabled features
+const forceEnabledFeature = features.register('forceEnabled', true);  // Explicitly enabled
+const forceDisabledFeature = features.register('forceDisabled', false); // Explicitly disabled
+const environmentFeature = features.register('envFeature', 
+  Boolean(process.env.ENABLE_FEATURE)
+); // Based on environment
+
 // Check feature status
 console.log('New UI enabled:', newUI.isEnabled);             // true (1.3.5 >= 1.2.0)
 console.log('Analytics enabled:', analyticsEngine.isEnabled); // true (1.3.5 >= 1.3.0)
 console.log('Experimental API enabled:', experimentalApi.isEnabled); // false (1.3.5 < 1.5.0-beta.1)
+console.log('Force enabled feature:', forceEnabledFeature.isEnabled); // true (explicitly enabled)
+console.log('Force disabled feature:', forceDisabledFeature.isEnabled); // false (explicitly disabled)
 ```
 
 ## Feature Conditional Execution
@@ -106,7 +115,7 @@ const message = newUI
   });
 ```
 
-## API Version Management
+## Versioned APIs
 
 Create versioned APIs with backward compatibility:
 
@@ -144,6 +153,47 @@ const userApi = features.createVersionedApi('userApi', {
 // Usage is consistent regardless of which version is active
 const user = await userApi.getUser(userId, { detailed: true });
 ```
+
+## Explicit Feature Toggling
+
+In addition to version-based feature toggling, you can explicitly enable or disable features by passing boolean values:
+
+```typescript
+// Boolean values
+const alwaysOnFeature = features.register('alwaysOn', true);  // Explicitly enabled
+const alwaysOffFeature = features.register('alwaysOff', false);  // Explicitly disabled
+
+// Environment variables (converts to boolean)
+const envControlledFeature = features.register('envFeature', 
+  process.env.ENABLE_MY_FEATURE === 'true' // Ensure conversion to boolean
+);
+```
+
+The library enforces type safety by only accepting:
+- Valid SemVer strings (e.g., '1.0.0', '2.1.3-beta.1')
+- Boolean values (true or false)
+
+This prevents ambiguity and ensures that feature toggling behaves predictably across your application.
+
+```typescript
+// ✅ Valid feature registrations
+features.register('feature1', '1.0.0');  // SemVer string
+features.register('feature2', '2.1.3-beta.1');  // SemVer with suffix
+features.register('feature3', true);  // Boolean
+
+// ❌ Invalid (would cause TypeScript errors)
+features.register('feature4', 1);  // Not allowed
+features.register('feature5', 'true');  // Not allowed
+features.register('feature6', 'false');  // Not allowed
+features.register('feature7', 'enabled');  // Not allowed
+```
+
+This functionality is particularly useful for:
+
+- **Overriding version-based behavior** - Force features on/off regardless of version
+- **Environment-specific features** - Control features through environment variables
+- **Debug/development features** - Enable features only in specific environments
+- **A/B testing** - Control feature availability for specific users or contexts
 
 ## Benefits
 

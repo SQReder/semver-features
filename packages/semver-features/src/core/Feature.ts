@@ -3,7 +3,7 @@
  */
 
 import * as semver from 'semver';
-import type { FeatureOptions, RenderOptions, SelectOptions, MapOptions, FoldOptions, ExecuteOptions, RenderComponentOptions } from '../utils/types';
+import type { FeatureOptions, Semver, RenderOptions, SelectOptions, MapOptions, FoldOptions, ExecuteOptions, RenderComponentOptions } from '../utils/types';
 
 /**
  * FeatureValue class for handling feature-dependent values and transformations
@@ -67,7 +67,7 @@ export class FeatureValue<E, D> {
  */
 export class Feature<E, D> {
   private name: string;
-  private minVersion: string;
+  private minVersion: Semver | boolean;
   private currentVersion: string;
   private _isEnabled: boolean;
 
@@ -77,9 +77,13 @@ export class Feature<E, D> {
    */
   constructor(options: FeatureOptions) {
     this.name = options.name;
-    this.minVersion = options.minVersion;
     this.currentVersion = options.currentVersion;
-    this._isEnabled = semver.gte(options.currentVersion, options.minVersion);
+    this.minVersion = options.minVersion;
+    
+    // Directly determine enabled state based on minVersion type
+    this._isEnabled = typeof this.minVersion === 'boolean'
+      ? this.minVersion as boolean // Use boolean directly
+      : semver.gte(options.currentVersion, this.minVersion as string); // Use semver comparison
   }
 
   /**
@@ -92,7 +96,7 @@ export class Feature<E, D> {
   /**
    * The required minimum version for this feature
    */
-  get requiredVersion(): string {
+  get requiredVersion(): Semver | boolean {
     return this.minVersion;
   }
 

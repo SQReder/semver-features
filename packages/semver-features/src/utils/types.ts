@@ -6,6 +6,13 @@
 type ReactNodeType = any; // Fallback type when React is not available
 
 /**
+ * Type definitions for SemVer strings
+ */
+export type BaseSemver = `${number}.${number}.${number}`;
+export type SemverWithSuffix = `${BaseSemver}-${string}`;
+export type Semver = BaseSemver | SemverWithSuffix;
+
+/**
  * Options for initializing the SemverFeatures class
  */
 export interface SemverFeaturesOptions {
@@ -26,8 +33,9 @@ export interface FeatureOptions {
   
   /**
    * Minimum semver version required for this feature
+   * Can also be a boolean to explicitly enable/disable
    */
-  minVersion: string;
+  minVersion: Semver | boolean;
   
   /**
    * Current application version
