@@ -1,7 +1,8 @@
 {
   "compilerOptions": {
-    "target": "es2018",
-    "module": "commonjs",
+    "target": "es2020",
+    "module": "esnext",
+    "moduleResolution": "bundler",
     "declaration": true,
     "outDir": "./dist",
     "strict": true,
@@ -9,8 +10,9 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "jsx": "react",
-    "lib": ["es2018", "dom"],
-    "moduleResolution": "node"
+    "lib": ["es2020", "dom"],
+    "isolatedModules": true,
+    "resolveJsonModule": true
   },
   "include": [
     "src/**/*"

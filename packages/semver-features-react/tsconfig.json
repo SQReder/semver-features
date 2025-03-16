@@ -1,17 +1,17 @@
 {
+  "extends": "../../tsconfig.json",
   "compilerOptions": {
-    "target": "es2018",
-    "module": "commonjs",
-    "declaration": true,
     "outDir": "./dist",
-    "strict": true,
-    "esModuleInterop": true,
-    "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true,
-    "jsx": "react",
-    "lib": ["es2018", "dom"],
-    "moduleResolution": "node"
+    "rootDir": "./src",
+    "jsx": "react"
   },
-  "include": ["src/**/*"],
-  "exclude": ["node_modules", "**/*.test.ts", "**/*.spec.ts", "**/*.test.tsx", "**/*.spec.tsx", "dist"]
+  "include": [
+    "src/**/*"
+  ],
+  "exclude": [
+    "node_modules",
+    "**/*.test.ts",
+    "**/*.spec.ts",
+    "dist"
+  ]
 } 
