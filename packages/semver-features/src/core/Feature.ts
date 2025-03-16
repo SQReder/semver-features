@@ -122,24 +122,4 @@ export class Feature<E, D> {
       ? options.enabled()
       : options.disabled();
   }
-
-  /**
-   * Render a component based on feature status
-   * @param options Object with functions that return components
-   * @returns The rendered component
-   */
-  render<T, U>(options: RenderOptions<T, U>): T | U {
-    return this._isEnabled
-      ? options.enabled()
-      : options.disabled();
-  }
-
-  /**
-   * Render a React component based on feature status
-   * @param options Object with functions that return React components
-   * @returns The rendered React component
-   */
-  renderComponent<T = any, U = any>(options: RenderComponentOptions<T, U>): T | U {
-    return this.render(options);
-  }
 } 

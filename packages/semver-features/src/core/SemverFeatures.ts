@@ -26,6 +26,20 @@ export class SemverFeatures {
   }
 
   /**
+   * Dumps information about all registered features to console
+   * @returns Array of feature information (for testing purposes)
+   */
+  dumpFeatures(): Array<{name: string, enabled: boolean}> {
+    const featureInfo = Array.from(this.features.entries()).map(([name, feature]) => ({
+      name,
+      enabled: feature.isEnabled
+    }));
+    
+    console.table(featureInfo);
+    return featureInfo;
+  }
+
+  /**
    * Get the current application version
    */
   get currentVersion(): string {
