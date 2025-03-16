@@ -137,22 +137,38 @@ addons.register(ADDON_ID, () => {
             alignItems: 'center', 
             padding: '0 8px',
             borderRadius: '4px',
-            cursor: 'pointer',
-            backgroundColor: '#2e3438',
-            color: 'white',
+            border: '1px solid #e2e8f0',
             fontSize: '12px',
             height: '28px',
           }}
-          onClick={() => {
-            // Simply toggle through the versions on click
-            const currentIndex = SAMPLE_VERSIONS.indexOf(selectedVersion);
-            const nextIndex = (currentIndex + 1) % SAMPLE_VERSIONS.length;
-            changeVersion(SAMPLE_VERSIONS[nextIndex]);
-          }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
             <span role="img" aria-label="version">📦</span>
-            <span>{selectedVersion}</span>
+            <select
+              value={selectedVersion}
+              onChange={(e) => changeVersion(e.target.value)}
+              style={{
+                backgroundColor: 'transparent',
+                border: 'none',
+                // color: 'white',
+                // fontSize: '12px',
+                cursor: 'pointer',
+                // padding: '0 4px',
+                outline: 'none',
+                // WebkitAppearance: 'none',
+                // MozAppearance: 'none',
+                // appearance: 'none',
+                // background: 'url("data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'8\' height=\'8\' fill=\'white\'><polygon points=\'0,0 8,0 4,4\'/></svg>") no-repeat',
+                // backgroundPosition: 'right 4px center',
+                // paddingRight: '16px',
+              }}
+            >
+              {SAMPLE_VERSIONS.map((version) => (
+                <option key={version} value={version}>
+                  {version}
+                </option>
+              ))}
+            </select>
           </div>
         </div>
       );
