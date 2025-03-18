@@ -23,7 +23,9 @@
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "lint": "eslint src --ext .ts,.tsx",
-    "prepublishOnly": "npm run build"
+    "lint:package": "publint .",
+    "lint:attw": "attw --pack .",
+    "prepublishOnly": "npm run build && npm run lint:package && npm run lint:attw"
   },
   "keywords": [
     "semver",
