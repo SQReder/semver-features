@@ -1,5 +1,13 @@
 # semver-features-react
 
+## 1.1.1
+
+### Patch Changes
+
+- 334b518: Update readmes
+- Updated dependencies [334b518]
+  - semver-features@1.1.1
+
 ## 1.1.0
 
 ### Minor Changes
