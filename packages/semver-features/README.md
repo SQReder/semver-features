@@ -62,7 +62,7 @@ newUI.execute({
 });
 
 // With async operations
-await experimentalApi.executeAsync({
+await experimentalApi.execute({
   enabled: async () => await fetchWithNewApi(),
   disabled: async () => await fetchWithStableApi()
 });

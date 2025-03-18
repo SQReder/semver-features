@@ -52,16 +52,20 @@ function Dashboard() {
   return (
     <>
       {/* Simple component switching */}
-      {newUI.render(<NewDashboard />, <LegacyDashboard />)}
+      {newUI.execute({
+        enabled: () => <NewDashboard />,
+        disabled: () => <LegacyDashboard />
+      })}
       
       {/* Conditional rendering */}
       {analyticsEngine.isEnabled && <AnalyticsProvider />}
       
-      {/* Legacy component selector (original API) */}
-      {newUI.renderComponent({
-        enabled: () => <NewHeader subtitle="Improved version" />,
-        disabled: () => <OldHeader />
-      })}
+      {/* Component rendering with FeatureToggle */}
+      <FeatureToggle 
+        feature={newUI}
+        enabled={<NewHeader subtitle="Improved version" />}
+        disabled={<OldHeader />}
+      />
       
       {/* New pattern with value selection and mapping */}
       {newUI
@@ -72,7 +76,7 @@ function Dashboard() {
         .map({
           enabled: (config) => <NewHeader {...config} />,
           disabled: (title) => <OldHeader title={title} />
-        })}
+        }).value}
     </>
   );
 }
@@ -91,16 +95,16 @@ The library replaces traditional if-statements with a more declarative approach:
 
 ```typescript
 // Execute different implementations based on feature status
-newUI.execute(
-  () => setupNewUI(),
-  () => setupLegacyUI()
-);
+newUI.execute({
+  enabled: () => setupNewUI(),
+  disabled: () => setupLegacyUI()
+});
 
 // With async operations
-await experimentalApi.executeAsync(
-  async () => await fetchWithNewApi(),
-  async () => await fetchWithStableApi()
-);
+await experimentalApi.execute({
+  enabled: async () => await fetchWithNewApi(),
+  disabled: async () => await fetchWithStableApi()
+});
 
 // Chain operations
 newUI.when(() => {
@@ -125,42 +129,51 @@ Key behaviors:
 The library provides automatic API versioning capabilities:
 
 ```typescript
-// Create versioned API client
-const userApi = features.createVersionedApi('userApi', {
-  versions: {
-    v3: {
-      minVersion: '1.5.0',
-      getUser: async (id, options = {}) => {
+// Create versioned API client using feature toggles
+const v2Feature = features.register('v2Api', '1.2.0');
+const v3Feature = features.register('v3Api', '1.5.0');
+
+// User service with versioned methods
+const userService = {
+  // Base functionality - available in all versions
+  async getBasicUser(id) {
+    // V1 implementation (fallback)
+    const response = await fetch(`/api/v1/user?id=${id}`);
+    return transformLegacyResponse(await response.json());
+  },
+  
+  // Get user with version-specific functionality
+  async getUser(id, options = {}) {
+    return v3Feature.execute({
+      enabled: async () => {
         // V3 implementation with enhanced options
         const response = await fetch(`/api/v3/users/${id}?detailed=${options.detailed}`);
         return response.json();
+      },
+      disabled: async () => {
+        // Try v2 API if available
+        return v2Feature.execute({
+          enabled: async () => {
+            // V2 implementation
+            const response = await fetch(`/api/v2/users/${id}`);
+            const data = await response.json();
+            // Adapt to match v3 format if needed
+            return options.detailed 
+              ? enrichWithDetails(data) 
+              : data;
+          },
+          disabled: async () => {
+            // Fallback to v1 implementation
+            return this.getBasicUser(id);
+          }
+        });
       }
-    },
-    v2: {
-      minVersion: '1.2.0',
-      getUser: async (id, options = {}) => {
-        // V2 implementation
-        const response = await fetch(`/api/v2/users/${id}`);
-        const data = await response.json();
-        // Adapt to match v3 format if needed
-        return options.detailed 
-          ? enrichWithDetails(data) 
-          : data;
-      }
-    },
-    v1: {
-      minVersion: '0.0.0', // Always available as fallback
-      getUser: async (id) => {
-        // Legacy implementation
-        const response = await fetch(`/api/v1/user?id=${id}`);
-        return transformLegacyResponse(await response.json());
-      }
-    }
+    });
   }
-});
+};
 
 // Usage is consistent regardless of which version is active
-const user = await userApi.getUser(userId, { detailed: true });
+const user = await userService.getUser(userId, { detailed: true });
 ```
 
 Key behaviors:

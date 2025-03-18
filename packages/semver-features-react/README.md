@@ -48,20 +48,7 @@ const experimentalApi = features.register('expApi', '1.5.0-beta.1'); // Enabled 
 
 There are multiple ways to use feature toggles in your React components:
 
-### 1. Direct Render Method
-
-Use the feature's built-in render method:
-
-```tsx
-function Header() {
-  return newUI.render({
-    enabled: <NewHeader subtitle="Direct render" />,
-    disabled: <OldHeader />
-  });
-}
-```
-
-### 2. FeatureToggle Component
+### 1. FeatureToggle Component
 
 Use the `FeatureToggle` component for declarative toggling:
 
@@ -77,7 +64,7 @@ function Dashboard() {
 }
 ```
 
-### 3. FeatureEnabled Component
+### 2. FeatureEnabled Component
 
 Render content only when a feature is enabled:
 
@@ -93,7 +80,7 @@ function App() {
 }
 ```
 
-### 4. FeatureDisabled Component
+### 3. FeatureDisabled Component
 
 Render content only when a feature is disabled:
 
@@ -109,7 +96,7 @@ function App() {
 }
 ```
 
-### 5. Direct Conditional Rendering
+### 4. Direct Conditional Rendering
 
 Use the `isEnabled` property for simple conditional rendering:
 
@@ -123,20 +110,20 @@ function App() {
 }
 ```
 
-### 6. Render Function Pattern
+### 5. Execute Function Pattern
 
-For more complex scenarios, use the render function pattern:
+For more complex scenarios, use the execute function pattern:
 
 ```tsx
 function Header() {
   return newUI.execute({
-    enabled: () => <NewHeader subtitle="Using render function API" />,
+    enabled: () => <NewHeader subtitle="Using execute function API" />,
     disabled: () => <OldHeader />
   });
 }
 ```
 
-### 7. Functional Select/Map Pattern
+### 6. Functional Select/Map Pattern
 
 For advanced use cases with different props and transformations:
 
@@ -191,10 +178,10 @@ const AnalyticsProvider = () => <div>Analytics Provider</div>;
 export function Dashboard() {
   return (
     <div className="dashboard">
-      {/* Direct render method */}
-      {newUI.render({
-        enabled: <NewHeader subtitle="Direct render" />,
-        disabled: <OldHeader />
+      {/* Using execute method */}
+      {newUI.execute({
+        enabled: () => <NewHeader subtitle="Using execute method" />,
+        disabled: () => <OldHeader />
       })}
       
       {/* FeatureToggle component */}
