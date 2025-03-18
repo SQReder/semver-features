@@ -48,5 +48,13 @@
   },
   "dependencies": {
     "semver": "^7.7.1"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/SQReder/semver-features.git"
+  },
+  "bugs": {
+    "url": "https://github.com/SQReder/semver-features/issues"
+  },
+  "homepage": "https://github.com/SQReder/semver-features"
 }

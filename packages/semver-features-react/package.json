@@ -61,5 +61,13 @@
   },
   "dependencies": {
     "semver-features": "*"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/SQReder/semver-features-react.git"
+  },
+  "bugs": {
+    "url": "https://github.com/SQReder/semver-features-react/issues"
+  },
+  "homepage": "https://github.com/SQReder/semver-features-react"
 }
