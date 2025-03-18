@@ -8,6 +8,8 @@ The monorepo contains the following packages:
 
 - **semver-features**: Core functionality for semver-based feature toggling
 - **semver-features-react**: React integration components for the core library
+- **tsup-config**: Shared tsup configuration for building packages
+- **typescript-config**: Shared TypeScript configuration
 - **docs**: Storybook application for testing and documentation
 
 ## Getting Started
@@ -51,9 +53,15 @@ npm run dev
 │   │   │   └── utils/           # Utility functions
 │   │   └── package.json
 │   │
-│   └── semver-features-react/   # React integration
-│       ├── src/
-│       │   └── components.tsx   # React components
+│   ├── semver-features-react/   # React integration
+│   │   ├── src/
+│   │   │   └── components.tsx   # React components
+│   │   └── package.json
+│   │
+│   ├── tsup-config/             # Shared tsup configuration
+│   │   └── package.json
+│   │
+│   └── typescript-config/       # Shared TypeScript configuration
 │       └── package.json
 │
 ├── apps/

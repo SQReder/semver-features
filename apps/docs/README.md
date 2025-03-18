@@ -43,6 +43,15 @@ The documentation is organized into the following sections:
 
 All documentation is written in MDX format (`.mdx` extension), which combines Markdown with JSX to create interactive documentation.
 
+### MDX Naming Convention
+
+When creating MDX story files, follow this naming convention:
+
+✅ CORRECT: `ComponentName.mdx`
+❌ INCORRECT: `ComponentName.stories.mdx`
+
+The `.stories` suffix is redundant for MDX files and should be omitted.
+
 ## Development
 
 ### Adding New Documentation

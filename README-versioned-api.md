@@ -10,42 +10,11 @@ The original versioned API implementation had several issues:
 2. **Interface Compatibility Issues**: Method signatures often changed between versions, creating type conflicts
 3. **Runtime vs. Static Type Checking**: TypeScript couldn't automatically narrow types based on runtime version checks
 
-## Recommended Implementation Approach
+## Recommended Implementation Approaches
 
 The improved implementation provides several approaches to handle versioned APIs with complete type safety:
 
-### 1. Feature-Specific Method Wrappers
-
-The `Feature.createMethod` utility creates methods that are tied directly to a specific feature toggle:
-
-```typescript
-// Register feature toggle for v3 API
-const v3Api = features.register('v3Api', '1.5.0');
-
-// Create a method only available when v3Api is enabled
-getUserRoles = v3Api.createMethod<[string], string[]>(
-  (id: string): string[] => {
-    // Implementation
-    return ['admin'];
-  }
-);
-
-// Usage with runtime null check
-const roles = await userApi.getUserRoles('user123');
-if (roles !== null) {
-  // TypeScript knows roles is string[] here
-  console.log('Roles:', roles);
-} else {
-  console.log('Roles not available in this version');
-}
-```
-
-This approach has several advantages:
-- It's more conceptually aligned - methods are tied directly to feature toggles
-- It provides better encapsulation of version-specific behaviors
-- It's more discoverable as part of the Feature API
-
-### 2. Conditional Version-Specific Execution
+### 1. Conditional Version-Specific Execution
 
 The `withVersionedMethod` utility provides a clean way to execute code only when a specific version is available:
 
@@ -65,7 +34,7 @@ await features.withVersionedMethod(
 );
 ```
 
-### 3. Direct Feature Toggle Approach
+### 2. Direct Feature Toggle Approach
 
 The most type-safe approach leverages feature toggles directly:
 
@@ -95,11 +64,9 @@ Based on our implementation improvements, we recommend these practices:
 
 2. **Avoid Type Casting**: Never use `as any` or other unsafe casts - use the provided type-safe utilities instead.
 
-3. **Feature-Based Method Wrappers**: Use `feature.createMethod()` to implement methods that are only available when a specific feature is enabled.
+3. **Conditional Execution Blocks**: Use `withVersionedMethod` or `feature.execute()` for version-specific code blocks.
 
-4. **Conditional Execution Blocks**: Use `withVersionedMethod` or `feature.execute()` for version-specific code blocks.
-
-5. **Explicit API Design**: Design APIs with clear version boundaries and compatibility patterns.
+4. **Explicit API Design**: Design APIs with clear version boundaries and compatibility patterns.
 
 ## Documentation
 

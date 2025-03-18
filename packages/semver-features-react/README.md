@@ -129,7 +129,7 @@ For more complex scenarios, use the render function pattern:
 
 ```tsx
 function Header() {
-  return newUI.renderComponent({
+  return newUI.execute({
     enabled: () => <NewHeader subtitle="Using render function API" />,
     disabled: () => <OldHeader />
   });

@@ -120,38 +120,47 @@ const message = newUI
 Create versioned APIs with backward compatibility:
 
 ```typescript
-// Create versioned API client
-const userApi = features.createVersionedApi('userApi', {
-  versions: {
-    v3: {
-      minVersion: '1.5.0',
-      getUser: async (id, options = {}) => {
-        // V3 implementation with enhanced options
-        const response = await fetch(`/api/v3/users/${id}?detailed=${options.detailed}`);
-        return response.json();
+// Create versioned API client using feature toggles
+const v2Feature = features.register('v2Api', '1.2.0');
+const v3Feature = features.register('v3Api', '1.5.0');
+
+// User service with versioned methods
+const userService = {
+  // Base functionality - available in all versions
+  async getBasicUser(id: string) {
+    return { id, name: 'User Name' };
+  },
+  
+  // Get user with version-specific functionality
+  async getUser(id: string, options = {}) {
+    return v3Feature.execute({
+      enabled: async () => {
+        // v3 implementation with enhanced options
+        return this.getDetailedUserV3(id, options);
+      },
+      disabled: async () => {
+        // Try v2 API if available
+        return v2Feature.execute({
+          enabled: async () => {
+            // v2 implementation
+            return this.getDetailedUserV2(id);
+          },
+          disabled: async () => {
+            // Fallback to basic user
+            return this.getBasicUser(id);
+          }
+        });
       }
-    },
-    v2: {
-      minVersion: '1.2.0',
-      getUser: async (id, options = {}) => {
-        // V2 implementation
-        const response = await fetch(`/api/v2/users/${id}`);
-        return await response.json();
-      }
-    },
-    v1: {
-      minVersion: '0.0.0', // Always available as fallback
-      getUser: async (id) => {
-        // Legacy implementation
-        const response = await fetch(`/api/v1/user?id=${id}`);
-        return await response.json();
-      }
-    }
-  }
-});
+    });
+  },
+  
+  // Implementation details...
+  async getDetailedUserV3(id, options) { /* ... */ },
+  async getDetailedUserV2(id) { /* ... */ }
+};
 
 // Usage is consistent regardless of which version is active
-const user = await userApi.getUser(userId, { detailed: true });
+const user = await userService.getUser('user123', { detailed: true });
 ```
 
 ## Explicit Feature Toggling
