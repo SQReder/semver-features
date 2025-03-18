@@ -3,7 +3,7 @@
   "changelog": "@changesets/cli/changelog",
   "commit": true,
   "fixed": [],
-  "linked": ["semver-features", "semver-features-react"],
+  "linked": [["semver-features", "semver-features-react"]],
   "access": "restricted",
   "baseBranch": "master",
   "updateInternalDependencies": "patch",

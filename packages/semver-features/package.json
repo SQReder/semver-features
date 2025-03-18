@@ -1,6 +1,6 @@
 {
   "name": "semver-features",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "description": "SemVer-Based Feature Toggle Library - Core Package",
   "type": "module",
   "main": "./dist/index.js",
@@ -32,7 +32,7 @@
     "feature-flag",
     "versioning"
   ],
-  "author": "",
+  "author": "SQReder <sqreder@gmail.com>",
   "license": "MIT",
   "devDependencies": {
     "@types/semver": "^7.5.8",

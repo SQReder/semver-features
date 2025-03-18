@@ -33,7 +33,7 @@
     "versioning",
     "react"
   ],
-  "author": "",
+  "author": "SQReder <sqreder@gmail.com>",
   "license": "MIT",
   "devDependencies": {
     "@testing-library/jest-dom": "^6.4.2",
