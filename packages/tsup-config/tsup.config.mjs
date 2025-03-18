@@ -1,6 +1,6 @@
 import { defineConfig } from "tsup";
 
-export default defineConfig({
+export default defineConfig((options) => ({
   format: ["esm"],
   dts: true,
   // splitting: false,
@@ -9,4 +9,5 @@ export default defineConfig({
   minify: false,
   target: "esnext",
   outDir: "dist",
-});
+  ...options,
+}));

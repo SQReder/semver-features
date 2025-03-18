@@ -2,5 +2,6 @@
   "name": "@repo/tsup-config",
   "version": "0.0.0",
   "private": true,
-  "main": "./tsup.config.mjs"
+  "main": "./tsup.config.mjs",
+  "types": "./tsup.config.d.ts"
 }
