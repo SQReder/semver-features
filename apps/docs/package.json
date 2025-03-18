@@ -1,6 +1,6 @@
 {
   "name": "docs",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": true,
   "scripts": {
     "dev": "storybook dev -p 6006 --debug-webpack",
@@ -11,8 +11,8 @@
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "semver": "^7.7.1",
-    "semver-features": "^0.1.0",
-    "semver-features-react": "^0.1.0"
+    "semver-features": "^1.0.0",
+    "semver-features-react": "^1.0.0"
   },
   "devDependencies": {
     "@storybook/addon-docs": "^8.6.6",

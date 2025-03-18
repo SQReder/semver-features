@@ -1,6 +1,6 @@
 {
   "name": "semver-features",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "SemVer-Based Feature Toggle Library - Core Package",
   "type": "module",
   "main": "./dist/index.js",
@@ -37,7 +37,7 @@
   "devDependencies": {
     "@types/semver": "^7.5.8",
     "@typescript-eslint/eslint-plugin": "^5.57.0",
-    "@typescript-eslint/parser": "^5.57.0", 
+    "@typescript-eslint/parser": "^5.57.0",
     "@vitest/coverage-v8": "^1.3.1",
     "eslint": "^8.37.0",
     "typescript": "^5.0.3",
@@ -49,4 +49,4 @@
   "dependencies": {
     "semver": "^7.7.1"
   }
-} 
+}
