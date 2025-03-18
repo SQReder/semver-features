@@ -4,7 +4,6 @@
   "description": "SemVer-Based Feature Toggle Library - Core Package",
   "type": "module",
   "main": "./dist/index.js",
-  "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
@@ -18,13 +17,13 @@
     "dist"
   ],
   "scripts": {
-    "build": "tsc",
+    "build": "tsup",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "lint": "eslint src --ext .ts,.tsx",
     "lint:package": "publint .",
-    "lint:attw": "attw --pack .",
+    "lint:attw": "attw --pack . --profile esm-only",
     "prepublishOnly": "npm run build && npm run lint:package && npm run lint:attw"
   },
   "keywords": [
@@ -42,7 +41,9 @@
     "@vitest/coverage-v8": "^1.3.1",
     "eslint": "^8.37.0",
     "typescript": "^5.0.3",
-    "vitest": "^1.3.1"
+    "vitest": "^1.3.1",
+    "tsup": "^6.0.0",
+    "@repo/shared-configs": "*"
   },
   "dependencies": {
     "semver": "^7.7.1"

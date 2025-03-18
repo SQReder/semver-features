@@ -4,7 +4,6 @@
   "description": "SemVer-Based Feature Toggle Library - React Integration",
   "type": "module",
   "main": "./dist/index.js",
-  "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
@@ -18,13 +17,13 @@
     "dist"
   ],
   "scripts": {
-    "build": "tsc",
+    "build": "tsup",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "lint": "eslint src --ext .ts,.tsx",
     "lint:package": "publint .",
-    "lint:attw": "attw --pack .",
+    "lint:attw": "attw --pack . --profile esm-only",
     "prepublishOnly": "npm run build && npm run lint:package && npm run lint:attw"
   },
   "keywords": [

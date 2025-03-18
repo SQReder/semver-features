@@ -1,0 +1,9 @@
+{
+  "name": "@repo/shared-configs",
+  "version": "1.0.0",
+  "description": "Unified configuration package for tsconfig and tsup",
+  "private": true,
+  "exports": {
+    "./tsup": "./tsup.config.mjs"
+  }
+}
