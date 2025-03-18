@@ -1,5 +1,11 @@
 # semver-features
 
+## 1.1.2
+
+### Patch Changes
+
+- 1190335: Add credits
+
 ## 1.1.1
 
 ### Patch Changes

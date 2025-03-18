@@ -1,6 +1,6 @@
 {
   "name": "semver-features-react",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "description": "SemVer-Based Feature Toggle Library - React Integration",
   "type": "module",
   "main": "./dist/index.js",
@@ -52,7 +52,7 @@
   },
   "peerDependencies": {
     "react": ">=16.14.0",
-    "semver-features": "^1.1.1"
+    "semver-features": "^1.1.2"
   },
   "peerDependenciesMeta": {
     "react": {

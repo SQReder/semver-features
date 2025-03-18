@@ -1,5 +1,13 @@
 # semver-features-react
 
+## 1.1.2
+
+### Patch Changes
+
+- 1190335: Add credits
+- Updated dependencies [1190335]
+  - semver-features@1.1.2
+
 ## 1.1.1
 
 ### Patch Changes
