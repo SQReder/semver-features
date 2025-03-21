@@ -12,9 +12,6 @@ export {
   withVersionedMethod
 } from './api/versioned-api';
 
-// Utility exports
-export { identity, compose, once, memoize } from './utils/functional';
-
 // Type exports
 export type {
   SemverFeaturesOptions,
