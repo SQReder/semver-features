@@ -2,6 +2,8 @@
  * Type definitions for the SemVer-based feature toggle library
  */
 
+import type { FeatureStateSource } from '../sources/types';
+
 // We'll make ReactNode optional and provide a fallback type
 type ReactNodeType = any; // Fallback type when React is not available
 
@@ -20,6 +22,11 @@ export interface SemverFeaturesOptions {
    * The current application version (required)
    */
   version: string;
+
+  /**
+   * Optional array of feature state sources
+   */
+  sources?: FeatureStateSource[];
 }
 
 /**
@@ -41,6 +48,11 @@ export interface FeatureOptions {
    * Current application version
    */
   currentVersion: string;
+
+  /**
+   * Optional array of feature state sources
+   */
+  sources?: FeatureStateSource[];
 }
 
 /**

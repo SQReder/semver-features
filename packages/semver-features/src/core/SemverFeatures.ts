@@ -4,6 +4,7 @@
 
 import { Feature } from './Feature';
 import type { Semver, SemverFeaturesOptions } from '../utils/types';
+import type { FeatureStateSource } from '../sources/types';
 import { isApiVersionAvailable } from '../api/versioned-api';
 
 /**
@@ -12,6 +13,7 @@ import { isApiVersionAvailable } from '../api/versioned-api';
 export class SemverFeatures {
   private version: string;
   private features: Map<string, Feature<any, any>>;
+  private sources: FeatureStateSource[];
 
   /**
    * Create a new feature manager
@@ -23,6 +25,14 @@ export class SemverFeatures {
     }
     this.version = options.version;
     this.features = new Map();
+    this.sources = options.sources || [];
+
+    // Initialize sources if needed
+    this.sources.forEach(source => {
+      if (source.initialize) {
+        source.initialize();
+      }
+    });
   }
 
   /**
@@ -66,7 +76,8 @@ export class SemverFeatures {
     const feature = new Feature<T, U>({
       name,
       minVersion,
-      currentVersion: this.version
+      currentVersion: this.version,
+      sources: this.sources
     });
     
     // Store for future reference

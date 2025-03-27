@@ -2,8 +2,18 @@
  * Feature entity implementation
  */
 
-import * as semver from 'semver';
-import type { FeatureOptions, Semver, RenderOptions, SelectOptions, MapOptions, FoldOptions, ExecuteOptions, RenderComponentOptions } from '../utils/types';
+import * as semver from "semver";
+import type {
+  FeatureOptions,
+  Semver,
+  RenderOptions,
+  SelectOptions,
+  MapOptions,
+  FoldOptions,
+  ExecuteOptions,
+  RenderComponentOptions,
+} from "../utils/types";
+import type { FeatureState, FeatureStateSource } from "../sources/types";
 
 /**
  * FeatureValue class for handling feature-dependent values and transformations
@@ -17,7 +27,7 @@ export class FeatureValue<E, D> {
   constructor(value: E | D, isEnabled: boolean) {
     this.value = value;
     this.isEnabled = isEnabled;
-    
+
     if (isEnabled) {
       this.enabledValue = value as E;
     } else {
@@ -32,18 +42,15 @@ export class FeatureValue<E, D> {
    */
   map<NE, ND>(options: MapOptions<E, D, NE, ND>): FeatureValue<NE, ND> {
     if (this.isEnabled && this.enabledValue !== undefined) {
-      return new FeatureValue<NE, ND>(
-        options.enabled(this.enabledValue), 
-        true
-      );
+      return new FeatureValue<NE, ND>(options.enabled(this.enabledValue), true);
     } else if (!this.isEnabled && this.disabledValue !== undefined) {
       return new FeatureValue<NE, ND>(
-        options.disabled(this.disabledValue), 
+        options.disabled(this.disabledValue),
         false
       );
     }
-    
-    throw new Error('Invalid state in FeatureValue.map');
+
+    throw new Error("Invalid state in FeatureValue.map");
   }
 
   /**
@@ -57,8 +64,8 @@ export class FeatureValue<E, D> {
     } else if (!this.isEnabled && this.disabledValue !== undefined) {
       return options.disabled(this.disabledValue);
     }
-    
-    throw new Error('Invalid state in FeatureValue.fold');
+
+    throw new Error("Invalid state in FeatureValue.fold");
   }
 }
 
@@ -70,6 +77,7 @@ export class Feature<E, D> {
   private minVersion: Semver | boolean;
   private currentVersion: string;
   private _isEnabled: boolean;
+  private sources: FeatureStateSource[];
 
   /**
    * Create a new feature entity
@@ -79,11 +87,31 @@ export class Feature<E, D> {
     this.name = options.name;
     this.currentVersion = options.currentVersion;
     this.minVersion = options.minVersion;
-    
-    // Directly determine enabled state based on minVersion type
-    this._isEnabled = typeof this.minVersion === 'boolean'
-      ? this.minVersion as boolean // Use boolean directly
-      : semver.gte(options.currentVersion, this.minVersion as string); // Use semver comparison
+    this.sources = options.sources || [];
+
+    // Check sources first, then fall back to version comparison
+    this._isEnabled = this.determineEnabledState();
+  }
+
+  /**
+   * Determine if the feature is enabled by checking sources and version
+   */
+  private determineEnabledState(): boolean {
+    // Find first defined state from sources or fall back to minVersion
+    let effectiveState: boolean | string = this.minVersion;
+
+    for (const source of this.sources) {
+      const state = source.getFeatureState(this.name);
+      if (state !== undefined) {
+        effectiveState = state;
+        break;
+      }
+    }
+
+    // Determine final state once
+    return typeof effectiveState === "boolean"
+      ? effectiveState
+      : semver.gte(this.currentVersion, effectiveState);
   }
 
   /**
@@ -118,8 +146,6 @@ export class Feature<E, D> {
    * @returns Result of the executed function
    */
   execute<R>(options: ExecuteOptions<R>): R {
-    return this._isEnabled
-      ? options.enabled()
-      : options.disabled();
+    return this._isEnabled ? options.enabled() : options.disabled();
   }
-} 
+}

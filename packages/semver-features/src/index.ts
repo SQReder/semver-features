@@ -12,6 +12,20 @@ export {
   withVersionedMethod
 } from './api/versioned-api';
 
+// Sources exports
+export {
+  type FeatureState,
+  type FeatureStateSource,
+  LocalStorageSource,
+  type LocalStorageSourceOptions,
+  UrlParamsSource,
+  type UrlParamsSourceOptions,
+  SessionStorageSource,
+  type SessionStorageSourceOptions,
+  AsyncSource,
+  type AsyncSourceOptions
+} from './sources';
+
 // Type exports
 export type {
   SemverFeaturesOptions,
