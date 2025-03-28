@@ -2,7 +2,7 @@
  * URL parameters-based feature state source
  */
 
-import type { FeatureState, FeatureStateSource } from './types';
+import type { FeatureAvailability, FeatureStateSource } from './types';
 import { parseSourceValue } from './valueParser';
 
 export interface UrlParamsSourceOptions {
@@ -16,21 +16,13 @@ export class UrlParamsSource implements FeatureStateSource {
   private prefix: string;
 
   constructor(options: UrlParamsSourceOptions = {}) {
-    this.prefix = options.prefix || 'feature.';
+    this.prefix = options.prefix ?? 'feature.';
   }
 
-  private getParamName(featureId: string): string {
-    return `${this.prefix}${featureId}`;
-  }
-
-  getFeatureState(featureId: string): FeatureState | undefined {
-    try {
-      const params = new URLSearchParams(window.location.search);
-      const value = params.get(this.getParamName(featureId));
-      return parseSourceValue(value);
-    } catch (e) {
-      // In case window is not available (SSR)
-      return undefined;
-    }
+  getFeatureState(featureId: string): FeatureAvailability | undefined {
+    const params = new URLSearchParams(window.location.search);
+    const key = this.prefix + featureId;
+    const value = params.get(key);
+    return parseSourceValue(value);
   }
 } 

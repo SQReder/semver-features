@@ -5,20 +5,20 @@
 import type { Semver } from '../utils/types';
 
 /**
- * Feature state that can be returned by a source
+ * Represents whether a feature is available via boolean or version requirement
  */
-export type FeatureState = boolean | Semver;
+export type FeatureAvailability = boolean | Semver;
 
 /**
  * Interface for feature state sources
  */
 export interface FeatureStateSource {
   /**
-   * Get feature state for a given feature ID
+   * Get feature availability for a given feature ID
    * @param featureId The unique identifier of the feature
-   * @returns Feature state if available, undefined otherwise
+   * @returns Feature availability if available, undefined otherwise
    */
-  getFeatureState(featureId: string): FeatureState | undefined;
+  getFeatureState(featureId: string): FeatureAvailability | undefined;
 
   /**
    * Optional initialization method

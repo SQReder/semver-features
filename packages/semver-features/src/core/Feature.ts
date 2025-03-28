@@ -3,17 +3,15 @@
  */
 
 import * as semver from "semver";
+import type { FeatureStateSource } from "../sources/types";
 import type {
-  FeatureOptions,
-  Semver,
-  RenderOptions,
-  SelectOptions,
-  MapOptions,
-  FoldOptions,
   ExecuteOptions,
-  RenderComponentOptions,
+  FeatureOptions,
+  FoldOptions,
+  MapOptions,
+  SelectOptions,
+  Semver
 } from "../utils/types";
-import type { FeatureState, FeatureStateSource } from "../sources/types";
 
 /**
  * FeatureValue class for handling feature-dependent values and transformations
