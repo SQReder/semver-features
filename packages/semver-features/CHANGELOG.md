@@ -4,7 +4,8 @@
 
 ### Major Changes
 
-- 0974485: # Features
+- 0974485: 
+  # Features
 
   - **External Feature Sources**: Added support for multiple feature state sources
     - `LocalStorageSource`: Store feature states in localStorage

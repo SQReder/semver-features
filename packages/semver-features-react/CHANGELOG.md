@@ -4,7 +4,9 @@
 
 ### Major Changes
 
-- 62634d4: # Breaking Changes
+- 62634d4: 
+
+  # Breaking Changes
 
   - Removed `render` method in favor of the `execute` method
   - Updated component numbering in documentation
