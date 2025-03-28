@@ -1,6 +1,6 @@
 ---
-description: Auto-Commit AI Agent Changes
-globs: *.*
+description: 
+globs: 
 alwaysApply: true
 ---
 # Auto-Commit AI Agent Changes

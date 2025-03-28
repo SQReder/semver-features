@@ -1,0 +1,140 @@
+---
+description: 
+globs: *.test.ts,*.test.tsx
+alwaysApply: false
+---
+# Unit Testing Best Practices
+
+Enforces test code quality by promoting patterns like AAA (Arrange-Act-Assert), single assertion per test, 
+clear naming, and other testing best practices.
+
+<rule>
+name: unit_testing_best_practices
+description: Enforces best practices for unit tests including AAA pattern, single assertion, and clear naming
+
+filters:
+  # Match test files across different naming conventions
+  - type: file_path
+    pattern: "\\.(test|spec)\\.(ts|tsx|js|jsx)$"
+  
+  # Or files in test directories
+  - type: file_path
+    pattern: "(/tests?/|/__tests__/)"
+
+actions:
+  - type: suggest
+    message: |
+      ## Unit Testing Best Practices
+
+      ### General Guidelines
+      - ✅ One expectation per test (improves test clarity and failure diagnosis)
+      - ✅ Follow AAA (Arrange-Act-Assert) pattern with clear separation
+      - ✅ Descriptive test names that explain the expected behavior
+      - ✅ Use the correct assertion method for type comparison
+      - ✅ Avoid logic in tests (loops, conditionals)
+      - ✅ Keep tests independent - no shared state
+      - ✅ Test behavior, not implementation details
+      
+      ### AAA Pattern Example
+      ```typescript
+      it('should calculate total including tax', () => {
+        // Arrange
+        const cart = new ShoppingCart();
+        const item = new Product('test', 100);
+        const taxRate = 0.1;
+        
+        // Act
+        cart.add(item);
+        const total = cart.calculateTotal(taxRate);
+        
+        // Assert
+        expect(total).toBe(110);
+      });
+      ```
+
+      ### Single Assertion
+      ❌ **AVOID**:
+      ```typescript
+      it('should validate user data', () => {
+        const user = new User({name: 'Test', email: 'test@example.com'});
+        expect(user.isValid()).toBe(true);
+        expect(user.name).toBe('Test');
+        expect(user.email).toBe('test@example.com');
+      });
+      ```
+
+      ✅ **BETTER**:
+      ```typescript
+      describe('User validation', () => {
+        const user = new User({name: 'Test', email: 'test@example.com'});
+        
+        it('should be valid with correct data', () => {
+          expect(user.isValid()).toBe(true);
+        });
+        
+        it('should store the name correctly', () => {
+          expect(user.name).toBe('Test');
+        });
+        
+        it('should store the email correctly', () => {
+          expect(user.email).toBe('test@example.com');
+        });
+      });
+      ```
+
+      ### Descriptive Naming
+      ❌ **AVOID**: `it('test user')`
+      ✅ **BETTER**: `it('should throw error when email is invalid')`
+
+  - type: highlight
+    pattern: "it\\(['\"][^'\"]+['\"],\\s*(?:[^{]|{[^}]*expect[^}]*expect)"
+    message: "Multiple expects in a single test. Consider splitting into multiple focused tests."
+    
+  - type: highlight
+    pattern: "it\\(['\"][^should][^'\"]*['\"]"
+    message: "Consider using 'should' or 'when' in test names to clearly describe expected behavior."
+
+  - type: highlight
+    pattern: "\\s+expect\\([^)]+\\).\\w+\\([^)]+\\);\\s+[^/]*expect"
+    message: "Multiple assertions without clear separation. Consider splitting into separate tests."
+
+examples:
+  - input: |
+      it('login test', () => {
+        const user = login('user', 'pass');
+        expect(user).not.toBeNull();
+        expect(user.isAuthenticated).toBe(true);
+        expect(user.roles).toContain('user');
+      });
+    output: |
+      describe('user login', () => {
+        // Arrange
+        const username = 'user';
+        const password = 'pass';
+        let user;
+        
+        beforeEach(() => {
+          // Act
+          user = login(username, password);
+        });
+        
+        it('should successfully authenticate the user', () => {
+          // Assert
+          expect(user.isAuthenticated).toBe(true);
+        });
+        
+        it('should assign the basic user role', () => {
+          // Assert
+          expect(user.roles).toContain('user');
+        });
+        
+        it('should return a valid user object', () => {
+          // Assert
+          expect(user).not.toBeNull();
+        });
+      });
+
+metadata:
+  priority: high
+  version: 1.0
+</rule> 
