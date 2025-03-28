@@ -10,7 +10,7 @@ import type {
   FoldOptions,
   MapOptions,
   SelectOptions,
-  Semver
+  Semver,
 } from "../utils/types";
 
 /**
@@ -145,5 +145,15 @@ export class Feature<E, D> {
    */
   execute<R>(options: ExecuteOptions<R>): R {
     return this._isEnabled ? options.enabled() : options.disabled();
+  }
+
+  /**
+   * Execute a function only when the feature is enabled
+   * @param callback Function to execute when the feature is enabled
+   * @returns The result of the callback function if the feature is enabled, otherwise undefined
+   */
+  when<T>(callback: () => T): T | undefined {
+    if (!this._isEnabled) return;
+    return callback();
   }
 }

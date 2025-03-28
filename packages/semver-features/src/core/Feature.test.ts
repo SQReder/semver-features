@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { Feature } from './Feature';
 
 describe('Feature', () => {
@@ -135,6 +135,72 @@ describe('Feature', () => {
       });
 
       expect(result).toBe('enabled');
+    });
+  });
+
+  describe('Feature when method', () => {
+    it('should execute callback when feature is enabled', () => {
+      // Arrange
+      const feature = new Feature({
+        name: 'enabled-feature',
+        currentVersion: '2.0.0',
+        minVersion: '1.0.0'
+      });
+      const callback = vi.fn().mockReturnValue('callback result');
+      
+      // Act
+      const result = feature.when(callback);
+      
+      // Assert
+      expect(callback).toHaveBeenCalledTimes(1);
+      expect(result).toBe('callback result');
+    });
+
+    it('should not execute callback when feature is disabled', () => {
+      // Arrange
+      const feature = new Feature({
+        name: 'disabled-feature',
+        currentVersion: '1.0.0',
+        minVersion: '2.0.0'
+      });
+      const callback = vi.fn().mockReturnValue('callback result');
+      
+      // Act
+      const result = feature.when(callback);
+      
+      // Assert
+      expect(callback).not.toHaveBeenCalled();
+      expect(result).toBeUndefined();
+    });
+
+    it('should return the callback result when feature is enabled', () => {
+      // Arrange
+      const feature = new Feature({
+        name: 'test-feature',
+        currentVersion: '1.0.0',
+        minVersion: true
+      });
+      
+      // Act
+      const result = feature.when(() => 'test value');
+      
+      // Assert
+      expect(result).toBe('test value');
+    });
+
+    it('should return undefined when feature is disabled', () => {
+      // Arrange
+      const feature = new Feature({
+        name: 'test-feature',
+        currentVersion: '1.0.0',
+        minVersion: false
+      });
+      
+      // Act
+      const result = feature.when(() => 'test value');
+      
+      // Assert
+      expect(result).toBeUndefined();
     });
   });
 }); 

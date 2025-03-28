@@ -56,9 +56,9 @@ Execute different code paths based on feature availability:
 
 ```typescript
 // Simple conditional execution
-newUI.execute({
-  enabled: () => console.log('Using new UI'),
-  disabled: () => console.log('Using legacy UI')
+experimentalApi.execute({
+  enabled: () => console.log('Using experimental API'),
+  disabled: () => console.log('Using stable API')
 });
 
 // With async operations
@@ -113,6 +113,60 @@ const message = newUI
     enabled: (data) => `Welcome ${data.user.name}! You have ${data.count} notifications.`,
     disabled: (legacy) => `Welcome guest! Please sign in to see notifications.`
   });
+```
+
+## External Feature Sources
+
+The library supports various sources for overriding feature states beyond version comparison:
+
+```typescript
+import { 
+  SemverFeatures, 
+  LocalStorageSource, 
+  UrlParamsSource,
+  SessionStorageSource,
+  AsyncSource
+} from 'semver-features';
+
+// Initialize with feature sources
+const features = new SemverFeatures({
+  version: '1.3.5',
+  sources: [
+    // Allow enabling/disabling features via URL parameters
+    // Example: ?features.newUI=true&features.analytics=false
+    new UrlParamsSource({ prefix: 'features.' }),
+    
+    // Store feature states in localStorage
+    new LocalStorageSource({ prefix: 'app.features.' }),
+    
+    // Store feature states in sessionStorage
+    new SessionStorageSource({ prefix: 'app.features.' }),
+    
+    // Asynchronously fetch feature states from a remote source
+    new AsyncSource({ 
+      fetchStates: async () => {
+        const response = await fetch('/api/features');
+        return response.json();
+      },
+      fetchOnInit: true  // Automatically fetch states on initialization (default: true)
+    })
+  ]
+});
+
+// Register features normally - sources will be checked first
+const newUI = features.register('newUI', '1.2.0');
+const analytics = features.register('analytics', '1.3.0');
+
+// Source precedence is determined by the order in the sources array
+// Earlier sources override later ones and version-based determination
+```
+
+## Debugging Features
+
+```typescript
+// List all registered features and their states
+features.dumpFeatures();
+// Outputs a table with feature names and their enabled states
 ```
 
 ## Versioned APIs

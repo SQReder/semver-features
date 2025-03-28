@@ -14,7 +14,7 @@ export {
 
 // Sources exports
 export {
-  type FeatureState,
+  type FeatureAvailability,
   type FeatureStateSource,
   LocalStorageSource,
   type LocalStorageSourceOptions,
