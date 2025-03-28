@@ -1,0 +1,140 @@
+# SemverFeatures Testing Best Practices
+
+<rule>
+name: semver_features_testing_best_practices
+description: Enforces best practices for testing the SemverFeatures package
+
+filters:
+  # Match test files in the semver-features package
+  - type: file_path
+    pattern: "packages/semver-features/.*\\.(test|spec)\\.(ts|tsx)$"
+  
+  # Match file creation or modification events
+  - type: event
+    pattern: "file_create|file_modify"
+
+actions:
+  - type: suggest
+    message: |
+      ## SemverFeatures Test Best Practices
+
+      Please ensure your tests follow these best practices:
+
+      ### Test Structure
+      - ✅ Use describe blocks to group related tests
+      - ✅ Use nested describe blocks for subcomponents/methods
+      - ✅ Follow AAA pattern (Arrange, Act, Assert) in each test
+      - ✅ One assertion per test for clarity and isolation
+      - ✅ Use descriptive test names (should...)
+      
+      ### Test Coverage
+      - All code paths should be tested, including:
+        - ✅ Happy paths (normal operation)
+        - ✅ Edge cases (empty lists, undefined inputs)
+        - ✅ Error handling (invalid inputs, error states)
+      - Test all public methods and properties
+      
+      ### Mocking
+      - ✅ Mock external dependencies (console, network calls)
+      - ✅ Use vi.fn() for mocking functions
+      - ✅ Use vi.spyOn() for spying on methods
+      - ✅ Always restore mocks after tests (vi.restoreAllMocks())
+      
+      ### Version Handling
+      - ✅ Test with specific semver versions for predictability
+      - ✅ Include cases that test version comparison logic:
+        - Current version < Required version
+        - Current version = Required version
+        - Current version > Required version
+      
+      ### Feature Sources
+      - ✅ Mock feature sources with vi.fn()
+      - ✅ Test source initialization in constructor
+      - ✅ Test precedence of sources over version comparison
+      
+      ### Test Plans
+      - ✅ Each test file should have a corresponding .tests.md file
+      - ✅ Test plans should document all test cases and coverage goals
+
+  - type: highlight
+    pattern: "it\\(['\"][^'\"]+['\"],\\s*(?:[^{]|{[^}]*expect[^}]*expect)"
+    message: "Multiple expects in a single test. Consider splitting into multiple focused tests."
+    
+  - type: highlight
+    pattern: "beforeEach\\([^{]*{[\\s\\S]*?(render|fireEvent)"
+    message: "Avoid putting component rendering or interactions in beforeEach. Follow AAA pattern in each individual test."
+
+  - type: highlight
+    pattern: "@ts-expect-error|@ts-ignore"
+    message: "Avoid using @ts-expect-error or @ts-ignore in tests. Create proper types or interfaces instead."
+
+examples:
+  - input: |
+      // Bad practice: Multiple expectations in one test
+      it('should initialize correctly', () => {
+        const features = new SemverFeatures({ version: '1.0.0' });
+        features.register('feature1', '0.5.0');
+        features.register('feature2', '2.0.0');
+        
+        const result = features.dumpFeatures();
+        
+        expect(result.length).toBe(2);
+        expect(result[0].enabled).toBe(true);
+        expect(result[1].enabled).toBe(false);
+      });
+    output: |
+      // Good practice: Split into focused tests
+      describe('feature initialization', () => {
+        it('should enable features with version below current', () => {
+          const features = new SemverFeatures({ version: '1.0.0' });
+          features.register('feature1', '0.5.0');
+          
+          const result = features.dumpFeatures();
+          
+          expect(result[0].enabled).toBe(true);
+        });
+
+        it('should disable features with version above current', () => {
+          const features = new SemverFeatures({ version: '1.0.0' });
+          features.register('feature2', '2.0.0');
+          
+          const result = features.dumpFeatures();
+          
+          expect(result[0].enabled).toBe(false);
+        });
+      });
+
+  - input: |
+      // Bad: Using beforeEach to render component
+      describe('Feature component', () => {
+        beforeEach(() => {
+          render(<FeatureFlag name="test" />);
+          fireEvent.click(screen.getByRole('button'));
+        });
+        
+        it('should show content', () => {
+          expect(screen.getByText('Feature enabled')).toBeInTheDocument();
+        });
+      });
+    output: |
+      // Good: Complete AAA pattern in each test
+      describe('Feature component', () => {
+        it('should show content when clicked', () => {
+          // Arrange
+          render(<FeatureFlag name="test" />);
+          
+          // Act
+          fireEvent.click(screen.getByRole('button'));
+          
+          // Assert
+          expect(screen.getByText('Feature enabled')).toBeInTheDocument();
+        });
+      });
+
+metadata:
+  priority: high
+  version: 1.0
+  tags:
+    - testing
+    - best-practices
+    - semver-features 

@@ -1,5 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
-import { Feature } from './Feature';
+import { Feature, FeatureValue } from './Feature';
+import type { FeatureStateSource } from "../sources/types";
 
 describe('Feature', () => {
   describe('initialization', () => {
@@ -282,6 +283,202 @@ describe('Feature', () => {
       
       // Assert
       expect(result).toBeUndefined();
+    });
+  });
+
+  describe('Feature state sources', () => {
+    it('should prioritize source state over version comparison when enabled', () => {
+      // Arrange
+      const mockSource: FeatureStateSource = {
+        getFeatureState: (name: string) => name === 'test-feature' ? true : undefined
+      };
+      
+      const config = {
+        name: 'test-feature',
+        currentVersion: '1.0.0',
+        minVersion: '2.0.0' as const,
+        sources: [mockSource]
+      };
+      
+      // Act
+      const feature = new Feature(config);
+      
+      // Assert
+      expect(feature.isEnabled).toBe(true);
+    });
+
+    it('should prioritize source state over version comparison when disabled', () => {
+      // Arrange
+      const mockSource: FeatureStateSource = {
+        getFeatureState: (name: string) => name === 'test-feature' ? false : undefined
+      };
+      
+      const config = {
+        name: 'test-feature',
+        currentVersion: '2.0.0',
+        minVersion: '1.0.0' as const,
+        sources: [mockSource]
+      };
+      
+      // Act
+      const feature = new Feature(config);
+      
+      // Assert
+      expect(feature.isEnabled).toBe(false);
+    });
+
+    it('should check sources in order and use first defined state', () => {
+      // Arrange
+      const firstSource: FeatureStateSource = {
+        getFeatureState: () => undefined
+      };
+      
+      const secondSource: FeatureStateSource = {
+        getFeatureState: (name: string) => name === 'test-feature' ? true : undefined
+      };
+      
+      const config = {
+        name: 'test-feature',
+        currentVersion: '1.0.0',
+        minVersion: '2.0.0' as const,
+        sources: [firstSource, secondSource]
+      };
+      
+      // Act
+      const feature = new Feature(config);
+      
+      // Assert
+      expect(feature.isEnabled).toBe(true);
+    });
+
+    it('should fall back to version comparison when no source provides a state', () => {
+      // Arrange
+      const mockSource: FeatureStateSource = {
+        getFeatureState: () => undefined
+      };
+      
+      const config = {
+        name: 'test-feature',
+        currentVersion: '2.0.0',
+        minVersion: '1.0.0' as const,
+        sources: [mockSource]
+      };
+      
+      // Act
+      const feature = new Feature(config);
+      
+      // Assert
+      expect(feature.isEnabled).toBe(true);
+    });
+  });
+
+  describe('Complex object value handling', () => {
+    it('should handle complex object values for enabled features', () => {
+      // Arrange
+      const feature = new Feature({
+        name: 'test-feature',
+        currentVersion: '1.0.0',
+        minVersion: true
+      });
+      
+      const enabledObject = { key: 'enabled', value: 42, nested: { flag: true } };
+      const disabledObject = { key: 'disabled', value: 0, nested: { flag: false } };
+      
+      // Act
+      const result = feature.select({
+        enabled: enabledObject,
+        disabled: disabledObject
+      });
+      
+      // Assert
+      expect(result.value).toEqual(enabledObject);
+    });
+    
+    it('should handle complex object values for disabled features', () => {
+      // Arrange
+      const feature = new Feature({
+        name: 'test-feature',
+        currentVersion: '1.0.0',
+        minVersion: false
+      });
+      
+      const enabledObject = { key: 'enabled', value: 42, nested: { flag: true } };
+      const disabledObject = { key: 'disabled', value: 0, nested: { flag: false } };
+      
+      // Act
+      const result = feature.select({
+        enabled: enabledObject,
+        disabled: disabledObject
+      });
+      
+      // Assert
+      expect(result.value).toEqual(disabledObject);
+    });
+    
+    it('should map complex object properties', () => {
+      // Arrange
+      const feature = new Feature({
+        name: 'test-feature',
+        currentVersion: '1.0.0',
+        minVersion: true
+      });
+      
+      // Act
+      const result = feature
+        .select({
+          enabled: { count: 5, label: 'test' },
+          disabled: { count: 0, label: 'disabled' }
+        })
+        .map({
+          enabled: (obj) => ({ ...obj, count: obj.count * 2, label: obj.label.toUpperCase() }),
+          disabled: (obj) => ({ ...obj, count: -1, label: 'INACTIVE' })
+        });
+      
+      // Assert
+      expect(result.value).toEqual({ count: 10, label: 'TEST' });
+    });
+    
+    it('should fold complex objects to derived values', () => {
+      // Arrange
+      const feature = new Feature({
+        name: 'test-feature',
+        currentVersion: '1.0.0',
+        minVersion: false
+      });
+      
+      // Act
+      const result = feature
+        .select({
+          enabled: { items: ['a', 'b', 'c'], active: true },
+          disabled: { items: ['x', 'y'], active: false }
+        })
+        .fold<string | number>({
+          enabled: (obj) => obj.items.length,
+          disabled: (obj) => obj.items.join('-')
+        });
+      
+      // Assert
+      expect(result).toBe('x-y');
+    });
+  });
+
+  describe('Feature execution with disabled feature', () => {
+    it('should execute disabled function when feature is disabled', () => {
+      // Arrange
+      const feature = new Feature({
+        name: 'test-feature',
+        currentVersion: '1.0.0',
+        minVersion: false
+      });
+      
+      // Act
+      const result = feature.execute({
+        enabled: () => 'enabled',
+        disabled: () => 'disabled'
+      });
+      
+      // Assert
+      expect(result).toBe('disabled');
     });
   });
 }); 

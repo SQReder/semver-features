@@ -1,0 +1,114 @@
+---
+description:
+globs: *.test.ts,*.test.tsx,*.spec.ts,*.spec.tsx
+alwaysApply: false
+---
+# Test Plan Enforcement Rule
+
+Enforces the creation and maintenance of comprehensive test plan markdown files for all test implementations.
+
+<rule>
+name: test_plan_enforcement
+description: Enforces that every test file has a corresponding test plan markdown file that serves as the source of truth
+
+filters:
+  # Match test files
+  - type: filepath
+    pattern: ".*\\.(test|spec)\\.(ts|tsx)$"
+  
+  # Match file creation or modification events
+  - type: event
+    pattern: "file_create|file_modify"
+
+actions:
+  - type: reject
+    conditions:
+      - pattern: "^(?!.*\\.tests\\.md$)"
+        message: "Every test file must have a corresponding .tests.md file with a comprehensive test plan"
+        filepath_transform: "s/\\.(test|spec)\\.(ts|tsx)$/.tests.md/"
+
+  - type: suggest
+    message: |
+      ## 📝 Test Plan Required
+      
+      A comprehensive test plan is required for all test implementations. The test plan must:
+      
+      1. Be named `{filename}.tests.md` matching your test file
+      2. Contain a comprehensive list of test cases to implement
+      3. Be treated as the source of truth for test implementation
+      4. Be reviewed and **updated before implementing or modifying tests**
+      
+      ### Required Test Process Flow
+      
+      ```mermaid
+      flowchart LR
+        A[Plan Tests] --> B[Create/Update plan.tests.md]
+        B --> C[Implement tests based on plan.tests.md]
+        C --> D[Run tests]
+        D -->|Tests fail| E[Fix implementation]
+        E --> D
+        D -->|Tests pass| F[Commit changes]
+      ```
+      
+      ### Test Plan Template
+      
+      ```markdown
+      # [Module Name] Test Plan
+      
+      ## Overview
+      Brief description of what's being tested and why.
+      
+      ## Plan
+      High-level testing strategy and approach.
+      
+      ## Test Cases
+      
+      ### [Test Group 1]
+      - Test case 1 description
+      - Test case 2 description
+      
+      ### [Test Group 2]
+      - Test case 1 description
+      - Test case 2 description
+      ```
+      
+      Please create or update this test plan before implementing the tests.
+
+  - type: check_file_exists
+    path: "{filepath_transform:s/\\.(test|spec)\\.(ts|tsx)$/.tests.md/}"
+    conditions:
+      - type: content
+        pattern: "(?s)^# .*\n\n## Overview.*\n\n.*\n\n## (Plan|Test Cases).*"
+        message: "Test plan file exists but doesn't follow the required format. It must include Overview, Plan, and Test Cases sections."
+
+examples:
+  - input: |
+      // Creating a test file without a test plan
+      // File: Feature.test.ts
+      import { Feature } from './Feature';
+      
+      describe('Feature', () => {
+        it('should be enabled when version matches', () => {
+          // Test implementation
+        });
+      });
+    output: |
+      Rejection with message that Feature.tests.md must be created first
+
+  - input: |
+      // Creating a test file with a proper test plan
+      // File: Feature.test.ts (with Feature.tests.md already existing)
+      import { Feature } from './Feature';
+      
+      describe('Feature', () => {
+        it('should be enabled when version matches', () => {
+          // Test implementation
+        });
+      });
+    output: |
+      Acceptance of the test file creation since test plan exists
+
+metadata:
+  priority: high
+  version: 1.0
+</rule>

@@ -19,18 +19,10 @@ import type {
 export class FeatureValue<E, D> {
   readonly value: E | D;
   private readonly isEnabled: boolean;
-  private readonly enabledValue: E | undefined;
-  private readonly disabledValue: D | undefined;
 
   constructor(value: E | D, isEnabled: boolean) {
     this.value = value;
     this.isEnabled = isEnabled;
-
-    if (isEnabled) {
-      this.enabledValue = value as E;
-    } else {
-      this.disabledValue = value as D;
-    }
   }
 
   /**
@@ -39,16 +31,11 @@ export class FeatureValue<E, D> {
    * @returns A new FeatureValue with transformed values
    */
   map<NE, ND>(options: MapOptions<E, D, NE, ND>): FeatureValue<NE, ND> {
-    if (this.isEnabled && this.enabledValue !== undefined) {
-      return new FeatureValue<NE, ND>(options.enabled(this.enabledValue), true);
-    } else if (!this.isEnabled && this.disabledValue !== undefined) {
-      return new FeatureValue<NE, ND>(
-        options.disabled(this.disabledValue),
-        false
-      );
+    if (this.isEnabled) {
+      return new FeatureValue<NE, ND>(options.enabled(this.value as E), true);
+    } else {
+      return new FeatureValue<NE, ND>(options.disabled(this.value as D), false);
     }
-
-    throw new Error("Invalid state in FeatureValue.map");
   }
 
   /**
@@ -57,13 +44,11 @@ export class FeatureValue<E, D> {
    * @returns The result of applying the appropriate transform function
    */
   fold<R>(options: FoldOptions<E, D, R>): R {
-    if (this.isEnabled && this.enabledValue !== undefined) {
-      return options.enabled(this.enabledValue);
-    } else if (!this.isEnabled && this.disabledValue !== undefined) {
-      return options.disabled(this.disabledValue);
+    if (this.isEnabled) {
+      return options.enabled(this.value as E);
+    } else {
+      return options.disabled(this.value as D);
     }
-
-    throw new Error("Invalid state in FeatureValue.fold");
   }
 }
 

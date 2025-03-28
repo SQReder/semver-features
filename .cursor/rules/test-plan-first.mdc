@@ -1,0 +1,154 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# Test Plan First Approach
+
+Enforces the test-plan-first approach where test plans are created before implementation and serve as the source of truth for tests.
+
+<rule>
+name: test_plan_first
+description: Enforces that test implementations align with test plans and follow best practices
+
+filters:
+  # Match any test files
+  - type: file_path
+    pattern: "\\.(test|spec)\\.(ts|tsx|js|jsx)$"
+  
+  # Match test plan files
+  - type: file_path
+    pattern: "\\.tests\\.md$"
+  
+  # Match file modification events
+  - type: event
+    pattern: "file_create|file_modify"
+
+actions:
+  - type: suggest
+    message: |
+      ## Test Plan First Approach
+      
+      When implementing tests, follow these steps:
+      
+      1. **First**, create or update the `.tests.md` file with a comprehensive test plan
+      2. **Then** implement tests according to this plan
+      
+      ### Test Plan Structure
+      
+      The test plan should include:
+      
+      - **Overview**: Brief description of what's being tested
+      - **Plan**: High-level testing strategy
+      - **Test Cases**: Grouped by category/functionality
+      - **Implementation Notes**: General guidance for tests
+      
+      ### Test Implementation Requirements
+      
+      All tests should:
+      
+      - Follow the AAA pattern (Arrange-Act-Assert)
+      - Include only one assertion per test
+      - Have descriptive names using "should" format
+      - Match test cases from the test plan exactly
+      - Maintain test isolation
+      - Use mocks for external dependencies
+
+  - type: check_file_exists
+    path: "{filepath_transform:s/\\.(test|spec)\\.(ts|tsx|js|jsx)$/.tests.md/}"
+    conditions:
+      - type: content
+        pattern: "(?s)^# .*\n\n## Overview.*\n\n.*\n\n## (Plan|Test Cases).*"
+        message: "Test plan file must exist before implementing tests and should include Overview, Plan, and Test Cases sections."
+
+  - type: highlight
+    pattern: "it\\(['\"][^'\"]+['\"],\\s*(?:[^{]|{[^}]*expect[^}]*expect)"
+    message: "Multiple expects in a single test. A test should verify a single behavior with one assertion."
+    
+  - type: highlight
+    pattern: "it\\(['\"][^should][^'\"]*['\"]"
+    message: "Test names should start with 'should' to clearly describe expected behavior."
+
+  - type: highlight
+    pattern: "beforeEach\\([^{]*{[\\s\\S]*?(expect|assert)"
+    message: "Avoid assertions in beforeEach. Follow AAA pattern in each individual test."
+
+examples:
+  - input: |
+      // Test without corresponding plan
+      describe('Feature', () => {
+        it('should do something', () => {
+          expect(true).toBe(true);
+        });
+      });
+    output: |
+      // First create Feature.tests.md with:
+      # Feature Test Plan
+      
+      ## Overview
+      This test plan covers the Feature functionality.
+      
+      ## Plan
+      Testing will focus on core functionality.
+      
+      ## Test Cases
+      - Test that it should do something
+      
+      ## Implementation Notes
+      - Follow AAA pattern
+      - One assertion per test
+      
+      // Then implement the tests:
+      describe('Feature', () => {
+        it('should do something', () => {
+          // Arrange
+          const feature = new Feature();
+          
+          // Act
+          const result = feature.doSomething();
+          
+          // Assert
+          expect(result).toBe(true);
+        });
+      });
+
+  - input: |
+      // Multiple assertions in one test
+      it('validates user data', () => {
+        const user = validateUser({name: 'Test'});
+        expect(user.isValid).toBe(true);
+        expect(user.errors).toEqual([]);
+      });
+    output: |
+      // Split into separate tests
+      describe('user validation', () => {
+        it('should validate user as valid', () => {
+          // Arrange
+          const userData = {name: 'Test'};
+          
+          // Act
+          const user = validateUser(userData);
+          
+          // Assert
+          expect(user.isValid).toBe(true);
+        });
+        
+        it('should have no validation errors', () => {
+          // Arrange
+          const userData = {name: 'Test'};
+          
+          // Act
+          const user = validateUser(userData);
+          
+          // Assert
+          expect(user.errors).toEqual([]);
+        });
+      });
+
+metadata:
+  priority: high
+  version: 1.0
+  tags:
+    - testing
+    - best-practices
+</rule> 

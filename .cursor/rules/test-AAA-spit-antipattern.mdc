@@ -1,0 +1,383 @@
+---
+description: 
+globs: *.test.ts,*.test.tsx
+alwaysApply: false
+---
+# Split AAA Pattern in Tests Antipattern
+
+Identifies and prevents the testing antipattern where the Arrange-Act-Assert (AAA) pattern is split across beforeEach hooks and test methods, reducing test clarity and independence.
+
+<rule>
+name: split_aaa_pattern_antipattern
+description: Prevents test antipattern where test arrangement and/or actions are performed in beforeEach hooks instead of individual tests
+
+filters:
+  # Match test files
+  - type: file_path
+    pattern: "\\.(test|spec)\\.(ts|tsx|js|jsx)$"
+  
+  # Simplified pattern that looks for beforeEach with arrange/act operations
+  - type: content
+    pattern: "beforeEach\\([^{]*\\{"
+
+actions:
+  - type: suggest
+    message: |
+      ## Testing Antipattern: Splitting the Arrange-Act-Assert Pattern
+
+      The Arrange-Act-Assert (AAA) pattern is a fundamental testing pattern that improves test readability and maintainability:
+      
+      - **Arrange**: Set up test prerequisites and inputs
+      - **Act**: Execute the code under test
+      - **Assert**: Verify the code behaves as expected
+      
+      ### 🚫 The Antipattern
+
+      Placing "Arrange" and "Act" steps in a `beforeEach` hook while "Assert" steps are in test methods is an antipattern that:
+      
+      1. **Breaks test independence** - Tests should be fully self-contained
+      2. **Splits the AAA pattern** - Makes it hard to understand the full test context
+      3. **Reduces test clarity** - A reader needs to look in multiple places to understand a test
+      4. **Creates brittle tests** - Changes to the shared setup affect many tests
+      5. **Makes debugging harder** - Test failures are harder to diagnose
+      6. **Hides test intent** - The purpose of each test is not immediately clear
+      
+      ### ✅ Better Approach
+      
+      Keep the complete AAA pattern within each test:
+
+      ```tsx
+      // ❌ ANTIPATTERN: Split AAA pattern
+      describe('Component tests', () => {
+        beforeEach(() => {
+          // Arrange
+          const props = { value: 'test' };
+          
+          // Act
+          render(<MyComponent {...props} />);
+          fireEvent.click(screen.getByRole('button'));
+        });
+        
+        it('should show success message', () => {
+          // Only Assert
+          expect(screen.getByText('Success')).toBeInTheDocument();
+        });
+        
+        it('should highlight the button', () => {
+          // Only Assert
+          expect(screen.getByRole('button')).toHaveClass('highlighted');
+        });
+      });
+      
+      // ✅ GOOD PATTERN: Complete AAA in each test
+      describe('Component tests', () => {
+        it('should show success message when clicked', () => {
+          // Arrange
+          const props = { value: 'test' };
+          
+          // Act
+          render(<MyComponent {...props} />);
+          fireEvent.click(screen.getByRole('button'));
+          
+          // Assert
+          expect(screen.getByText('Success')).toBeInTheDocument();
+        });
+        
+        it('should highlight the button when clicked', () => {
+          // Arrange
+          const props = { value: 'test' };
+          
+          // Act
+          render(<MyComponent {...props} />);
+          fireEvent.click(screen.getByRole('button'));
+          
+          // Assert
+          expect(screen.getByRole('button')).toHaveClass('highlighted');
+        });
+      });
+      ```
+      
+      ### 👍 Appropriate Uses of beforeEach
+
+      `beforeEach` is ideal for:
+      
+      1. **Setting up test fixtures or data** that don't directly interact with the component
+      2. **Mocking external dependencies** consistently across tests
+      3. **Initializing shared variables** that will be used differently in each test
+      
+      ```tsx
+      // ✅ APPROPRIATE: Setup not part of the AAA pattern
+      describe('UserProfile tests', () => {
+        let mockUserData;
+        let mockApiService;
+        
+        beforeEach(() => {
+          // Setup test data and mocks
+          mockUserData = { id: 1, name: 'Test User', email: 'test@example.com' };
+          mockApiService = { fetchUser: vi.fn().mockResolvedValue(mockUserData) };
+        });
+        
+        it('should display user name when loaded', async () => {
+          // Complete AAA in the test
+          render(<UserProfile service={mockApiService} userId={1} />);
+          await screen.findByText('User Profile');
+          expect(screen.getByText('Test User')).toBeInTheDocument();
+        });
+      });
+      ```
+
+examples:
+  - input: |
+      describe('Feature flag tests', () => {
+        beforeEach(() => {
+          render(<FeatureFlag name="test-feature" enabled={true}>
+            <div>Feature enabled</div>
+          </FeatureFlag>);
+        });
+        
+        it('should show content when feature is enabled', () => {
+          expect(screen.getByText('Feature enabled')).toBeInTheDocument();
+        });
+        
+        it('should apply the enabled class', () => {
+          expect(screen.getByRole('region')).toHaveClass('feature-enabled');
+        });
+      });
+    output: |
+      describe('Feature flag tests', () => {
+        it('should show content when feature is enabled', () => {
+          // Arrange & Act
+          render(<FeatureFlag name="test-feature" enabled={true}>
+            <div>Feature enabled</div>
+          </FeatureFlag>);
+          
+          // Assert
+          expect(screen.getByText('Feature enabled')).toBeInTheDocument();
+        });
+        
+        it('should apply the enabled class', () => {
+          // Arrange & Act
+          render(<FeatureFlag name="test-feature" enabled={true}>
+            <div>Feature enabled</div>
+          </FeatureFlag>);
+          
+          // Assert
+          expect(screen.getByRole('region')).toHaveClass('feature-enabled');
+        });
+      });
+
+  - input: |
+      describe('Form submission', () => {
+        beforeEach(() => {
+          render(<ContactForm onSubmit={mockSubmit} />);
+          fireEvent.change(screen.getByLabelText('Email'), {
+            target: { value: 'test@example.com' }
+          });
+          fireEvent.change(screen.getByLabelText('Message'), {
+            target: { value: 'Hello world' }
+          });
+          fireEvent.click(screen.getByText('Submit'));
+        });
+        
+        it('should call onSubmit with form data', () => {
+          expect(mockSubmit).toHaveBeenCalledWith({
+            email: 'test@example.com',
+            message: 'Hello world'
+          });
+        });
+        
+        it('should show success message', () => {
+          expect(screen.getByText('Thanks for your message!')).toBeInTheDocument();
+        });
+      });
+    output: |
+      describe('Form submission', () => {
+        it('should call onSubmit with form data', () => {
+          // Arrange
+          render(<ContactForm onSubmit={mockSubmit} />);
+          
+          // Act - Fill and submit the form
+          fireEvent.change(screen.getByLabelText('Email'), {
+            target: { value: 'test@example.com' }
+          });
+          fireEvent.change(screen.getByLabelText('Message'), {
+            target: { value: 'Hello world' }
+          });
+          fireEvent.click(screen.getByText('Submit'));
+          
+          // Assert
+          expect(mockSubmit).toHaveBeenCalledWith({
+            email: 'test@example.com',
+            message: 'Hello world'
+          });
+        });
+        
+        it('should show success message', () => {
+          // Arrange
+          render(<ContactForm onSubmit={mockSubmit} />);
+          
+          // Act - Fill and submit the form
+          fireEvent.change(screen.getByLabelText('Email'), {
+            target: { value: 'test@example.com' }
+          });
+          fireEvent.change(screen.getByLabelText('Message'), {
+            target: { value: 'Hello world' }
+          });
+          fireEvent.click(screen.getByText('Submit'));
+          
+          // Assert
+          expect(screen.getByText('Thanks for your message!')).toBeInTheDocument();
+        });
+      });
+
+  - input: |
+      describe('Data fetching component', () => {
+        beforeEach(async () => {
+          // Setup API mock
+          fetchMock.mockResponseOnce(JSON.stringify({ name: 'John Doe' }));
+          
+          // Render and wait for data
+          render(<UserProfile userId="123" />);
+          await waitForElementToBeVisible(screen.getByTestId('profile-container'));
+        });
+        
+        it('should display the user name', () => {
+          expect(screen.getByText('John Doe')).toBeInTheDocument();
+        });
+        
+        it('should not show loading indicator after load', () => {
+          expect(screen.queryByTestId('loading-spinner')).not.toBeInTheDocument();
+        });
+      });
+    output: |
+      describe('Data fetching component', () => {
+        beforeEach(() => {
+          // Setup API mock only
+          fetchMock.mockResponseOnce(JSON.stringify({ name: 'John Doe' }));
+        });
+        
+        it('should display the user name', async () => {
+          // Arrange
+          render(<UserProfile userId="123" />);
+          
+          // Act - Wait for data to load
+          await waitForElementToBeVisible(screen.getByTestId('profile-container'));
+          
+          // Assert
+          expect(screen.getByText('John Doe')).toBeInTheDocument();
+        });
+        
+        it('should not show loading indicator after load', async () => {
+          // Arrange
+          render(<UserProfile userId="123" />);
+          
+          // Act - Wait for data to load
+          await waitForElementToBeVisible(screen.getByTestId('profile-container'));
+          
+          // Assert
+          expect(screen.queryByTestId('loading-spinner')).not.toBeInTheDocument();
+        });
+      });
+
+  - input: |
+      describe('Toggle switch', () => {
+        let onChange;
+        
+        beforeEach(() => {
+          onChange = vi.fn();
+          render(<ToggleSwitch onChange={onChange} defaultChecked={false} />);
+          fireEvent.click(screen.getByRole('switch'));
+        });
+        
+        it('should call onChange when clicked', () => {
+          expect(onChange).toHaveBeenCalledWith(true);
+        });
+        
+        it('should toggle to checked state', () => {
+          expect(screen.getByRole('switch')).toHaveAttribute('aria-checked', 'true');
+        });
+      });
+    output: |
+      describe('Toggle switch', () => {
+        it('should call onChange when clicked', () => {
+          // Arrange
+          const onChange = vi.fn();
+          render(<ToggleSwitch onChange={onChange} defaultChecked={false} />);
+          
+          // Act
+          fireEvent.click(screen.getByRole('switch'));
+          
+          // Assert
+          expect(onChange).toHaveBeenCalledWith(true);
+        });
+        
+        it('should toggle to checked state', () => {
+          // Arrange
+          const onChange = vi.fn();
+          render(<ToggleSwitch onChange={onChange} defaultChecked={false} />);
+          
+          // Act
+          fireEvent.click(screen.getByRole('switch'));
+          
+          // Assert
+          expect(screen.getByRole('switch')).toHaveAttribute('aria-checked', 'true');
+        });
+      });
+
+  - input: |
+      // This pattern is fine - just setup with no action
+      describe('UserProfile component', () => {
+        let mockUser;
+        
+        beforeEach(() => {
+          mockUser = {
+            id: 123,
+            name: 'Test User',
+            email: 'test@example.com',
+            roles: ['admin', 'editor']
+          };
+        });
+        
+        it('should display user name', () => {
+          render(<UserProfile user={mockUser} />);
+          expect(screen.getByText('Test User')).toBeInTheDocument();
+        });
+        
+        it('should show admin badge for admin users', () => {
+          render(<UserProfile user={mockUser} />);
+          expect(screen.getByText('Admin')).toBeInTheDocument();
+        });
+      });
+    output: |
+      // This pattern is fine - just setup with no action
+      describe('UserProfile component', () => {
+        let mockUser;
+        
+        beforeEach(() => {
+          mockUser = {
+            id: 123,
+            name: 'Test User',
+            email: 'test@example.com',
+            roles: ['admin', 'editor']
+          };
+        });
+        
+        it('should display user name', () => {
+          render(<UserProfile user={mockUser} />);
+          expect(screen.getByText('Test User')).toBeInTheDocument();
+        });
+        
+        it('should show admin badge for admin users', () => {
+          render(<UserProfile user={mockUser} />);
+          expect(screen.getByText('Admin')).toBeInTheDocument();
+        });
+      });
+
+metadata:
+  priority: high
+  version: 1.1
+  tags:
+    - testing
+    - best-practices
+    - react-testing
+</rule>

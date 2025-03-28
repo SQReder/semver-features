@@ -3,11 +3,6 @@ description:
 globs: *.test.ts,*.test.tsx
 alwaysApply: false
 ---
----
-description: 
-globs: *.test.ts,*.test.tsx
-alwaysApply: false
----
 # Unit Testing Best Practices
 
 Enforces test code quality by promoting patterns like AAA (Arrange-Act-Assert), single assertion per test, 
@@ -43,18 +38,20 @@ actions:
       - ✅ Only test public interfaces and observable behavior
       
       ### AAA Pattern Example
+      The Arrange-Act-Assert pattern provides a clear structure for tests. While following this pattern is recommended, you don't need to explicitly mark these sections with comments in your code.
+
       ```typescript
       it('should calculate total including tax', () => {
-        // Arrange
+        // Setup test data
         const cart = new ShoppingCart();
         const item = new Product('test', 100);
         const taxRate = 0.1;
         
-        // Act
+        // Execute the code under test
         cart.add(item);
         const total = cart.calculateTotal(taxRate);
         
-        // Assert
+        // Verify expected outcomes
         expect(total).toBe(110);
       });
       ```
@@ -108,13 +105,8 @@ actions:
       ✅ **BETTER**: 
       ```typescript
       it('should accept valid user with all required fields', () => {
-        // Arrange
         const testUser = createValidUserFixture();
-        
-        // Act
         const result = validateUser(testUser);
-        
-        // Assert
         expect(result).toBe(true);
       });
       ```
@@ -149,13 +141,10 @@ actions:
       ✅ **BETTER** - test through public API:
       ```typescript
       it('should initialize correctly', () => {
-        // Arrange
         const source = new AsyncSource({ fetchStates: async () => ({ feature: true }) });
         
-        // Act
         await source.initialize();
         
-        // Assert
         expect(source.getFeatureState('feature')).toBe(true);
       });
       ```
@@ -163,15 +152,12 @@ actions:
       ✅ **BETTER** - mock dependencies for isolation:
       ```typescript
       it('should refresh feature states', async () => {
-        // Arrange
         const mockStates = { feature1: true };
         const fetchStates = vi.fn().mockResolvedValue(mockStates);
         const source = new AsyncSource({ fetchStates });
         
-        // Act
         await source.refresh();
         
-        // Assert
         expect(fetchStates).toHaveBeenCalledTimes(1);
         expect(source.getFeatureState('feature1')).toBe(true);
       });
@@ -216,28 +202,23 @@ examples:
       });
     output: |
       describe('user login', () => {
-        // Arrange
         const username = 'user';
         const password = 'pass';
         let user;
         
         beforeEach(() => {
-          // Act
           user = login(username, password);
         });
         
         it('should successfully authenticate the user', () => {
-          // Assert
           expect(user.isAuthenticated).toBe(true);
         });
         
         it('should assign the basic user role', () => {
-          // Assert
           expect(user.roles).toContain('user');
         });
         
         it('should return a valid user object', () => {
-          // Assert
           expect(user).not.toBeNull();
         });
       });
@@ -252,10 +233,8 @@ examples:
       });
     output: |
       it('should initialize correctly', () => {
-        // Arrange
         const source = new DataSource();
         
-        // Act & Assert
         // Only test observable behavior through public methods
         expect(source.isInitialized()).toBe(true);
         expect(source.getData()).toEqual({});
@@ -264,4 +243,4 @@ examples:
 metadata:
   priority: high
   version: 1.0
-</rule> 
+</rule>
