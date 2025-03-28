@@ -3,6 +3,11 @@ description:
 globs: *.test.ts,*.test.tsx
 alwaysApply: false
 ---
+---
+description: 
+globs: *.test.ts,*.test.tsx
+alwaysApply: false
+---
 # Unit Testing Best Practices
 
 Enforces test code quality by promoting patterns like AAA (Arrange-Act-Assert), single assertion per test, 
@@ -34,6 +39,8 @@ actions:
       - ✅ Avoid logic in tests (loops, conditionals)
       - ✅ Keep tests independent - no shared state
       - ✅ Test behavior, not implementation details
+      - ❌ **NEVER** access private fields, methods, or implementation details in tests
+      - ✅ Only test public interfaces and observable behavior
       
       ### AAA Pattern Example
       ```typescript
@@ -63,6 +70,13 @@ actions:
       });
       ```
 
+      Using a single assertion per test improves clarity, failure diagnosis, and makes tests more maintainable:
+
+      - Tests clearly document a specific behavior
+      - Test failures pinpoint exact issues without multiple potential causes
+      - Test names can be more specific and descriptive
+      - Refactoring is easier when behaviors are separated
+
       ✅ **BETTER**:
       ```typescript
       describe('User validation', () => {
@@ -83,8 +97,90 @@ actions:
       ```
 
       ### Descriptive Naming
-      ❌ **AVOID**: `it('test user')`
-      ✅ **BETTER**: `it('should throw error when email is invalid')`
+      ❌ **AVOID**: 
+      ```typescript
+      it('test user', () => {
+        const result = validateUser(testUser);
+        expect(result).toBe(true);
+      });
+      ```
+
+      ✅ **BETTER**: 
+      ```typescript
+      it('should accept valid user with all required fields', () => {
+        // Arrange
+        const testUser = createValidUserFixture();
+        
+        // Act
+        const result = validateUser(testUser);
+        
+        // Assert
+        expect(result).toBe(true);
+      });
+      ```
+
+      ### Test Against Public APIs, Not Implementation Details
+
+      Accessing implementation details makes tests brittle and prone to breaking when internal code changes. 
+      Using `@ts-expect-error` in tests is a **code smell** for several reasons:
+
+      1. **Coupling to implementation**: Tests become tied to internal state that wasn't meant to be public
+      2. **Circumventing type safety**: TypeScript's primary benefit is catching errors at compile time
+      3. **Test isolation violations**: Good tests verify behavior through public interfaces
+      4. **API design red flags**: Frequent need to access private members suggests your public API needs improvement
+
+      ❌ **AVOID** accessing private fields or using `@ts-expect-error`:
+      ```typescript
+      it('should initialize correctly', () => {
+        const source = new AsyncSource({ fetchStates: async () => ({}) });
+        // @ts-expect-error accessing private property
+        expect(source.states).toEqual({});
+      });
+
+      it('should store feature state correctly', () => {
+        const source = new FeatureSource();
+        source.setFeature('test', true);
+        
+        // @ts-expect-error accessing private state
+        expect(source._featureMap.get('test')).toBe(true);
+      });
+      ```
+
+      ✅ **BETTER** - test through public API:
+      ```typescript
+      it('should initialize correctly', () => {
+        // Arrange
+        const source = new AsyncSource({ fetchStates: async () => ({ feature: true }) });
+        
+        // Act
+        await source.initialize();
+        
+        // Assert
+        expect(source.getFeatureState('feature')).toBe(true);
+      });
+      ```
+
+      ✅ **BETTER** - mock dependencies for isolation:
+      ```typescript
+      it('should refresh feature states', async () => {
+        // Arrange
+        const mockStates = { feature1: true };
+        const fetchStates = vi.fn().mockResolvedValue(mockStates);
+        const source = new AsyncSource({ fetchStates });
+        
+        // Act
+        await source.refresh();
+        
+        // Assert
+        expect(fetchStates).toHaveBeenCalledTimes(1);
+        expect(source.getFeatureState('feature1')).toBe(true);
+      });
+      ```
+
+      Rare legitimate uses of `@ts-expect-error` in tests are limited to:
+      - Testing intentional type errors
+      - Edge cases of dynamic behavior that can't be statically typed
+      - Testing the type system itself
 
   - type: highlight
     pattern: "it\\(['\"][^'\"]+['\"],\\s*(?:[^{]|{[^}]*expect[^}]*expect)"
@@ -97,6 +193,18 @@ actions:
   - type: highlight
     pattern: "\\s+expect\\([^)]+\\).\\w+\\([^)]+\\);\\s+[^/]*expect"
     message: "Multiple assertions without clear separation. Consider splitting into separate tests."
+
+  - type: highlight
+    pattern: "@ts-expect-error|@ts-ignore.*private|\\.(#\\w+|_\\w+)"
+    message: "Accessing private fields or implementation details is forbidden. Tests should only verify the public API."
+
+  - type: highlight
+    pattern: "\\bexpect\\([^)]+\\._\\w+\\)"
+    message: "Do not test private properties (prefixed with _). Tests should only target the public interface."
+
+  - type: highlight
+    pattern: "@ts-expect-error\\s+accessing\\s+private\\s+property"
+    message: "This pattern explicitly violates test isolation principles. Refactor tests to use only public APIs."
 
 examples:
   - input: |
@@ -132,6 +240,25 @@ examples:
           // Assert
           expect(user).not.toBeNull();
         });
+      });
+
+  - input: |
+      it('should initialize internal state', () => {
+        const source = new DataSource();
+        
+        // BAD: Accessing private property
+        // @ts-expect-error accessing private property
+        expect(source._internalState).toEqual({});
+      });
+    output: |
+      it('should initialize correctly', () => {
+        // Arrange
+        const source = new DataSource();
+        
+        // Act & Assert
+        // Only test observable behavior through public methods
+        expect(source.isInitialized()).toBe(true);
+        expect(source.getData()).toEqual({});
       });
 
 metadata:

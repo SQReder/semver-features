@@ -6,12 +6,6 @@
 export { SemverFeatures } from './core/SemverFeatures';
 export { Feature, FeatureValue } from './core/Feature';
 
-// API exports
-export { 
-  isApiVersionAvailable,
-  withVersionedMethod
-} from './api/versioned-api';
-
 // Sources exports
 export {
   type FeatureAvailability,
