@@ -3,7 +3,10 @@ import { Feature, FeatureValue } from './Feature';
 import type { FeatureStateSource } from "../sources/types";
 
 describe('Feature', () => {
-  describe('initialization', () => {
+  /**
+   * Feature Initialization and Configuration
+   */
+  describe('initialization and configuration', () => {
     it('should enable feature when current version matches required version', () => {
       // Arrange
       const featureConfig = {
@@ -14,6 +17,98 @@ describe('Feature', () => {
       
       // Act
       const feature = new Feature(featureConfig);
+      
+      // Assert
+      expect(feature.isEnabled).toBe(true);
+    });
+
+    it('should disable feature when current version is lower than required', () => {
+      // Arrange
+      const config = {
+        name: 'test-feature',
+        currentVersion: '1.0.0',
+        minVersion: '2.0.0' as const
+      };
+      
+      // Act
+      const feature = new Feature(config);
+      
+      // Assert
+      expect(feature.isEnabled).toBe(false);
+    });
+
+    it('should enable feature when current version is higher than required', () => {
+      // Arrange
+      const config = {
+        name: 'test-feature',
+        currentVersion: '2.1.0',
+        minVersion: '2.0.0' as const
+      };
+      
+      // Act
+      const feature = new Feature(config);
+      
+      // Assert
+      expect(feature.isEnabled).toBe(true);
+    });
+
+    it('should enable feature when minVersion is true', () => {
+      // Arrange
+      const config = {
+        name: 'test-feature',
+        currentVersion: '1.0.0',
+        minVersion: true
+      };
+      
+      // Act
+      const feature = new Feature(config);
+      
+      // Assert
+      expect(feature.isEnabled).toBe(true);
+    });
+
+    it('should disable feature when minVersion is false', () => {
+      // Arrange
+      const config = {
+        name: 'test-feature',
+        currentVersion: '1.0.0',
+        minVersion: false
+      };
+      
+      // Act
+      const feature = new Feature(config);
+      
+      // Assert
+      expect(feature.isEnabled).toBe(false);
+    });
+
+    it('should initialize with empty sources array', () => {
+      // Arrange
+      const config = {
+        name: 'test-feature',
+        currentVersion: '1.0.0',
+        minVersion: '1.0.0' as const,
+        sources: []
+      };
+      
+      // Act
+      const feature = new Feature(config);
+      
+      // Assert
+      expect(feature.isEnabled).toBe(true);
+    });
+
+    it('should initialize with undefined sources array', () => {
+      // Arrange
+      const config = {
+        name: 'test-feature',
+        currentVersion: '1.0.0',
+        minVersion: '1.0.0' as const,
+        sources: undefined
+      };
+      
+      // Act
+      const feature = new Feature(config);
       
       // Assert
       expect(feature.isEnabled).toBe(true);
@@ -35,6 +130,9 @@ describe('Feature', () => {
     });
   });
 
+  /**
+   * Version Validation
+   */
   describe('version validation', () => {
     it('should throw error with invalid current version format', () => {
       // Arrange
@@ -61,233 +159,11 @@ describe('Feature', () => {
     });
   });
 
-  describe('boolean feature flags', () => {
-    it('should enable feature when minVersion is true', () => {
-      // Arrange
-      const enabledConfig = {
-        name: 'test-feature',
-        currentVersion: '1.0.0',
-        minVersion: true
-      };
-      
-      // Act
-      const feature = new Feature(enabledConfig);
-      
-      // Assert
-      expect(feature.isEnabled).toBe(true);
-    });
-
-    it('should disable feature when minVersion is false', () => {
-      // Arrange
-      const disabledConfig = {
-        name: 'test-feature',
-        currentVersion: '1.0.0',
-        minVersion: false
-      };
-      
-      // Act
-      const feature = new Feature(disabledConfig);
-      
-      // Assert
-      expect(feature.isEnabled).toBe(false);
-    });
-  });
-
-  describe('version comparison', () => {
-    it('should disable feature when current version is lower than required', () => {
-      // Arrange
-      const config = {
-        name: 'test-feature',
-        currentVersion: '1.0.0',
-        minVersion: '2.0.0' as const
-      };
-      
-      // Act
-      const feature = new Feature(config);
-      
-      // Assert
-      expect(feature.isEnabled).toBe(false);
-    });
-
-    it('should enable feature when current version equals required version', () => {
-      // Arrange
-      const config = {
-        name: 'test-feature',
-        currentVersion: '2.0.0',
-        minVersion: '2.0.0' as const
-      };
-      
-      // Act
-      const feature = new Feature(config);
-      
-      // Assert
-      expect(feature.isEnabled).toBe(true);
-    });
-
-    it('should enable feature when current version is higher than required', () => {
-      // Arrange
-      const config = {
-        name: 'test-feature',
-        currentVersion: '2.1.0',
-        minVersion: '2.0.0' as const
-      };
-      
-      // Act
-      const feature = new Feature(config);
-      
-      // Assert
-      expect(feature.isEnabled).toBe(true);
-    });
-  });
-
-  describe('Feature value handling', () => {
-    it('should return enabled value when feature is enabled', () => {
-      // Arrange
-      const feature = new Feature({
-        name: 'test-feature',
-        currentVersion: '1.0.0',
-        minVersion: true
-      });
-      
-      // Act
-      const result = feature.select({
-        enabled: 'ON',
-        disabled: 'OFF'
-      });
-      
-      // Assert
-      expect(result.value).toBe('ON');
-    });
-
-    it('should apply map function to enabled value', () => {
-      // Arrange
-      const feature = new Feature({
-        name: 'test-feature',
-        currentVersion: '1.0.0',
-        minVersion: true
-      });
-      
-      // Act
-      const result = feature
-        .select({ enabled: 1, disabled: 0 })
-        .map({
-          enabled: (n) => n + 1,
-          disabled: (n) => n - 1
-        });
-      
-      // Assert
-      expect(result.value).toBe(2);
-    });
-
-    it('should apply fold function to disabled value', () => {
-      // Arrange
-      const feature = new Feature({
-        name: 'test-feature',
-        currentVersion: '1.0.0',
-        minVersion: false
-      });
-      
-      // Act
-      const result = feature
-        .select({ enabled: 'Yes', disabled: 'No' })
-        .fold({
-          enabled: (s) => s.toUpperCase(),
-          disabled: (s) => s.toLowerCase()
-        });
-      
-      // Assert
-      expect(result).toBe('no');
-    });
-  });
-
-  describe('Feature execution methods', () => {
-    it('should execute enabled function when feature is enabled', () => {
-      // Arrange
-      const feature = new Feature({
-        name: 'test-feature',
-        currentVersion: '1.0.0',
-        minVersion: true
-      });
-      
-      // Act
-      const result = feature.execute({
-        enabled: () => 'enabled',
-        disabled: () => 'disabled'
-      });
-      
-      // Assert
-      expect(result).toBe('enabled');
-    });
-  });
-
-  describe('Feature when method', () => {
-    it('should execute callback when feature is enabled', () => {
-      // Arrange
-      const feature = new Feature({
-        name: 'enabled-feature',
-        currentVersion: '2.0.0',
-        minVersion: '1.0.0'
-      });
-      const callback = vi.fn().mockReturnValue('callback result');
-      
-      // Act
-      const result = feature.when(callback);
-      
-      // Assert
-      expect(callback).toHaveBeenCalledTimes(1);
-      expect(result).toBe('callback result');
-    });
-
-    it('should not execute callback when feature is disabled', () => {
-      // Arrange
-      const feature = new Feature({
-        name: 'disabled-feature',
-        currentVersion: '1.0.0',
-        minVersion: '2.0.0'
-      });
-      const callback = vi.fn().mockReturnValue('callback result');
-      
-      // Act
-      const result = feature.when(callback);
-      
-      // Assert
-      expect(callback).not.toHaveBeenCalled();
-      expect(result).toBeUndefined();
-    });
-
-    it('should return the callback result when feature is enabled', () => {
-      // Arrange
-      const feature = new Feature({
-        name: 'test-feature',
-        currentVersion: '1.0.0',
-        minVersion: true
-      });
-      
-      // Act
-      const result = feature.when(() => 'test value');
-      
-      // Assert
-      expect(result).toBe('test value');
-    });
-
-    it('should return undefined when feature is disabled', () => {
-      // Arrange
-      const feature = new Feature({
-        name: 'test-feature',
-        currentVersion: '1.0.0',
-        minVersion: false
-      });
-      
-      // Act
-      const result = feature.when(() => 'test value');
-      
-      // Assert
-      expect(result).toBeUndefined();
-    });
-  });
-
-  describe('Feature state sources', () => {
-    it('should prioritize source state over version comparison when enabled', () => {
+  /**
+   * Feature State Source Handling
+   */
+  describe('feature state source handling', () => {
+    it('should prioritize source state over version comparison when source enables feature', () => {
       // Arrange
       const mockSource: FeatureStateSource = {
         getFeatureState: (name: string) => name === 'test-feature' ? true : undefined
@@ -307,7 +183,7 @@ describe('Feature', () => {
       expect(feature.isEnabled).toBe(true);
     });
 
-    it('should prioritize source state over version comparison when disabled', () => {
+    it('should prioritize source state over version comparison when source disables feature', () => {
       // Arrange
       const mockSource: FeatureStateSource = {
         getFeatureState: (name: string) => name === 'test-feature' ? false : undefined
@@ -370,9 +246,88 @@ describe('Feature', () => {
       // Assert
       expect(feature.isEnabled).toBe(true);
     });
+
+    it('should enable feature when source returns a version string lower than current version', () => {
+      // Arrange
+      const mockSource: FeatureStateSource = {
+        getFeatureState: (name: string) => name === 'test-feature' ? '1.5.0' : undefined
+      };
+      
+      const config = {
+        name: 'test-feature',
+        currentVersion: '2.0.0',
+        minVersion: '1.0.0' as const,
+        sources: [mockSource]
+      };
+      
+      // Act
+      const feature = new Feature(config);
+      
+      // Assert
+      expect(feature.isEnabled).toBe(true);
+    });
+
+    it('should disable feature when source returns a version string higher than current version', () => {
+      // Arrange
+      const mockSource: FeatureStateSource = {
+        getFeatureState: (name: string) => name === 'test-feature' ? '3.0.0' : undefined
+      };
+      
+      const config = {
+        name: 'test-feature',
+        currentVersion: '2.0.0',
+        minVersion: '1.0.0' as const,
+        sources: [mockSource]
+      };
+      
+      // Act
+      const feature = new Feature(config);
+      
+      // Assert
+      expect(feature.isEnabled).toBe(false);
+    });
   });
 
-  describe('Complex object value handling', () => {
+  /**
+   * FeatureValue Selection (select method)
+   */
+  describe('FeatureValue selection', () => {
+    it('should return enabled value when feature is enabled', () => {
+      // Arrange
+      const feature = new Feature({
+        name: 'test-feature',
+        currentVersion: '1.0.0',
+        minVersion: true
+      });
+      
+      // Act
+      const result = feature.select({
+        enabled: 'ON',
+        disabled: 'OFF'
+      });
+      
+      // Assert
+      expect(result.value).toBe('ON');
+    });
+
+    it('should return disabled value when feature is disabled', () => {
+      // Arrange
+      const feature = new Feature({
+        name: 'test-feature',
+        currentVersion: '1.0.0',
+        minVersion: false
+      });
+      
+      // Act
+      const result = feature.select({
+        enabled: 'ON',
+        disabled: 'OFF'
+      });
+      
+      // Assert
+      expect(result.value).toBe('OFF');
+    });
+
     it('should handle complex object values for enabled features', () => {
       // Arrange
       const feature = new Feature({
@@ -414,7 +369,92 @@ describe('Feature', () => {
       // Assert
       expect(result.value).toEqual(disabledObject);
     });
-    
+  });
+
+  /**
+   * FeatureValue Transformation (map method)
+   */
+  describe('FeatureValue transformation', () => {
+    it('should apply map function to enabled value with simple types', () => {
+      // Arrange
+      const feature = new Feature({
+        name: 'test-feature',
+        currentVersion: '1.0.0',
+        minVersion: true
+      });
+      
+      // Act
+      const result = feature
+        .select({ enabled: 1, disabled: 0 })
+        .map({
+          enabled: (n) => n + 1,
+          disabled: (n) => n - 1
+        });
+      
+      // Assert
+      expect(result.value).toBe(2);
+    });
+
+    it('should apply map function to disabled value with simple types', () => {
+      // Arrange
+      const feature = new Feature({
+        name: 'test-feature',
+        currentVersion: '1.0.0',
+        minVersion: false
+      });
+      
+      // Act
+      const result = feature
+        .select({ enabled: 1, disabled: 0 })
+        .map({
+          enabled: (n) => n + 1,
+          disabled: (n) => n - 1
+        });
+      
+      // Assert
+      expect(result.value).toBe(-1);
+    });
+
+    it('should map enabled value with different input/output types', () => {
+      // Arrange
+      const feature = new Feature({
+        name: 'test-feature',
+        currentVersion: '1.0.0',
+        minVersion: true
+      });
+      
+      // Act
+      const result = feature
+        .select({ enabled: 42, disabled: 'inactive' })
+        .map({
+          enabled: (n) => n.toString(),
+          disabled: (s) => s.toUpperCase()
+        });
+      
+      // Assert
+      expect(result.value).toBe('42');
+    });
+
+    it('should map disabled value with different input/output types', () => {
+      // Arrange
+      const feature = new Feature({
+        name: 'test-feature',
+        currentVersion: '1.0.0',
+        minVersion: false
+      });
+      
+      // Act
+      const result = feature
+        .select({ enabled: 42, disabled: 'inactive' })
+        .map({
+          enabled: (n) => n.toString(),
+          disabled: (s) => s.toUpperCase()
+        });
+      
+      // Assert
+      expect(result.value).toBe('INACTIVE');
+    });
+
     it('should map complex object properties', () => {
       // Arrange
       const feature = new Feature({
@@ -437,8 +477,76 @@ describe('Feature', () => {
       // Assert
       expect(result.value).toEqual({ count: 10, label: 'TEST' });
     });
-    
-    it('should fold complex objects to derived values', () => {
+  });
+
+  /**
+   * FeatureValue Reduction (fold method)
+   */
+  describe('FeatureValue reduction', () => {
+    it('should apply fold function to enabled value with simple types', () => {
+      // Arrange
+      const feature = new Feature({
+        name: 'test-feature',
+        currentVersion: '1.0.0',
+        minVersion: true
+      });
+      
+      // Act
+      const result = feature
+        .select({ enabled: 'Yes', disabled: 'No' })
+        .fold({
+          enabled: (s) => s.toUpperCase(),
+          disabled: (s) => s.toLowerCase()
+        });
+      
+      // Assert
+      expect(result).toBe('YES');
+    });
+
+    it('should apply fold function to disabled value with simple types', () => {
+      // Arrange
+      const feature = new Feature({
+        name: 'test-feature',
+        currentVersion: '1.0.0',
+        minVersion: false
+      });
+      
+      // Act
+      const result = feature
+        .select({ enabled: 'Yes', disabled: 'No' })
+        .fold({
+          enabled: (s) => s.toUpperCase(),
+          disabled: (s) => s.toLowerCase()
+        });
+      
+      // Assert
+      expect(result).toBe('no');
+    });
+
+    it('should fold complex objects to derived values for enabled feature', () => {
+      // Arrange
+      const feature = new Feature({
+        name: 'test-feature',
+        currentVersion: '1.0.0',
+        minVersion: true
+      });
+      
+      // Act
+      const result = feature
+        .select({
+          enabled: { items: ['a', 'b', 'c'], active: true },
+          disabled: { items: ['x', 'y'], active: false }
+        })
+        .fold<number>({
+          enabled: (obj) => obj.items.length,
+          disabled: (obj) => obj.items.length * -1
+        });
+      
+      // Assert
+      expect(result).toBe(3);
+    });
+
+    it('should fold complex objects to derived values for disabled feature', () => {
       // Arrange
       const feature = new Feature({
         name: 'test-feature',
@@ -462,7 +570,28 @@ describe('Feature', () => {
     });
   });
 
-  describe('Feature execution with disabled feature', () => {
+  /**
+   * Conditional Execution
+   */
+  describe('conditional execution', () => {
+    it('should execute enabled function when feature is enabled', () => {
+      // Arrange
+      const feature = new Feature({
+        name: 'test-feature',
+        currentVersion: '1.0.0',
+        minVersion: true
+      });
+      
+      // Act
+      const result = feature.execute({
+        enabled: () => 'enabled',
+        disabled: () => 'disabled'
+      });
+      
+      // Assert
+      expect(result).toBe('enabled');
+    });
+
     it('should execute disabled function when feature is disabled', () => {
       // Arrange
       const feature = new Feature({
@@ -479,6 +608,68 @@ describe('Feature', () => {
       
       // Assert
       expect(result).toBe('disabled');
+    });
+
+    it('should execute callback when feature is enabled', () => {
+      // Arrange
+      const feature = new Feature({
+        name: 'enabled-feature',
+        currentVersion: '2.0.0',
+        minVersion: '1.0.0'
+      });
+      const callback = vi.fn().mockReturnValue('callback result');
+      
+      // Act
+      feature.when(callback);
+      
+      // Assert
+      expect(callback).toHaveBeenCalledTimes(1);
+    });
+
+    it('should not execute callback when feature is disabled', () => {
+      // Arrange
+      const feature = new Feature({
+        name: 'disabled-feature',
+        currentVersion: '1.0.0',
+        minVersion: '2.0.0'
+      });
+      const callback = vi.fn().mockReturnValue('callback result');
+      
+      // Act
+      feature.when(callback);
+      
+      // Assert
+      expect(callback).not.toHaveBeenCalled();
+    });
+
+    it('should return the callback result when feature is enabled', () => {
+      // Arrange
+      const feature = new Feature({
+        name: 'test-feature',
+        currentVersion: '1.0.0',
+        minVersion: true
+      });
+      
+      // Act
+      const result = feature.when(() => 'test value');
+      
+      // Assert
+      expect(result).toBe('test value');
+    });
+
+    it('should return undefined when feature is disabled', () => {
+      // Arrange
+      const feature = new Feature({
+        name: 'test-feature',
+        currentVersion: '1.0.0',
+        minVersion: false
+      });
+      
+      // Act
+      const result = feature.when(() => 'test value');
+      
+      // Assert
+      expect(result).toBeUndefined();
     });
   });
 }); 
