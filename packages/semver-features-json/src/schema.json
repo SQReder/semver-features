@@ -1,0 +1,65 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "FeatureFlagsConfig",
+    "type": "object",
+    "required": ["features"],
+    "properties": {
+      "$schema": {
+        "type": "string",
+        "description": "Path to the schema file"
+      },
+      "features": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "required": ["name", "description", "versionRange"],
+          "properties": {
+            "name": {
+              "type": "string",
+              "pattern": "^[a-zA-Z][a-zA-Z0-9_\\-]*$",
+              "description": "Кодовое имя фичи"
+            },
+            "description": {
+              "type": "string"
+            },
+            "versionRange": {
+              "type": "string",
+              "description": "Диапазон версий в формате semver"
+            },
+            "enabledByDefault": {
+              "type": "boolean",
+              "default": false
+            },
+            "tags": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "uniqueItems": true
+            },
+            "deprecated": {
+              "type": "boolean",
+              "default": false
+            },
+            "owners": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "createdAt": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "expiresAt": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          "additionalProperties": false
+        }
+      }
+    },
+    "additionalProperties": false
+  }
+  

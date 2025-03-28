@@ -133,7 +133,6 @@ describe('SemverFeatures', () => {
     it('should preserve feature state across retrievals', () => {
       // Arrange
       const features = new SemverFeatures({ version: '1.0.0' });
-      const feature = features.register('stateful-feature', true);
       
       // Act - Get the same feature again
       const retrievedFeature = features.register('stateful-feature', false);
@@ -310,7 +309,6 @@ describe('SemverFeatures', () => {
       
       // Act
       const enabledFeature = features.register('version-enabled', '1.0.0'); // Lower than current
-      const disabledFeature = features.register('version-disabled', '3.0.0'); // Higher than current
       
       // Assert - test only one assertion per test for clarity
       expect(enabledFeature.isEnabled).toBe(true); // Fallback to version comparison

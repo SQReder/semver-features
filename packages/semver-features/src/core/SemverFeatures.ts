@@ -11,7 +11,7 @@ import type { FeatureStateSource } from '../sources/types';
  */
 export class SemverFeatures {
   private version: string;
-  private features: Map<string, Feature<any, any>>;
+  private features: Map<string, Feature>;
   private sources: FeatureStateSource[];
 
   /**
@@ -61,17 +61,17 @@ export class SemverFeatures {
    *                  or a boolean to explicitly enable/disable
    * @returns Feature entity that can be used for checking and rendering
    */
-  register<T = unknown, U = unknown>(
+  register(
     name: string, 
     minVersion: Semver | boolean
-  ): Feature<T, U> {
+  ): Feature {
     // Return existing feature if already registered
     if (this.features.has(name)) {
-      return this.features.get(name) as Feature<T, U>;
+      return this.features.get(name) as Feature;
     }
 
     // Create new feature
-    const feature = new Feature<T, U>({
+    const feature = new Feature({
       name,
       minVersion,
       currentVersion: this.version,

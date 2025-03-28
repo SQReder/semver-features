@@ -55,7 +55,7 @@ export class FeatureValue<E, D> {
 /**
  * Feature entity that handles version-based feature toggling
  */
-export class Feature<E, D> {
+export class Feature {
   private name: string;
   private minVersion: Semver | boolean;
   private currentVersion: string;

@@ -267,6 +267,7 @@ This functionality is particularly useful for:
 - **Versioned APIs** - Seamlessly handle API evolution with backward compatibility
 - **Predictable releases** - Clear understanding of when features will activate
 - **Gradual migration** - Helps manage transition periods between implementations
+- **External control** - Toggle features via URL parameters, localStorage, or external APIs
 
 ## React Integration
 

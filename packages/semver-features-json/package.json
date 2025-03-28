@@ -1,0 +1,41 @@
+{
+  "name": "semver-features-json",
+  "version": "0.1.0",
+  "description": "JSON-based feature toggling with SemVer and TypeScript type safety",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "src",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest run",
+    "lint": "eslint src --ext .ts",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "feature-toggle",
+    "semver",
+    "json",
+    "typescript",
+    "feature-flags"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "zod": "^3.22.4",
+    "semver-features": "^1.0.0"
+  },
+  "peerDependencies": {
+    "semver-features": "^1.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^18.0.0",
+    "eslint": "^8.0.0",
+    "typescript": "^5.0.0",
+    "vitest": "^0.34.0"
+  }
+}
