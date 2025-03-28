@@ -1,0 +1,142 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# Test Coverage Improvement Procedures
+
+Enforces best practices for maintaining and improving test coverage in the codebase.
+
+<rule>
+name: coverage_improvement_procedures
+description: Enforces practices to maintain or improve test coverage when making code changes
+
+filters:
+  # Trigger on file modification events
+  - type: event
+    pattern: "file_modify|file_create"
+  
+  # Only consider source files, not test files themselves
+  - type: filepath
+    pattern: "packages/[^/]+/src/.*\\.(?:ts|tsx|js|jsx)$"
+    exclude: ".*\\.(test|spec)\\.(ts|tsx|js|jsx)$"
+  
+  # Only trigger for significant changes
+  - type: diff_stats
+    min_lines_changed: 5
+
+actions:
+  - type: suggest
+    message: |
+      ## 📊 Test Coverage Check Needed
+      
+      Significant code changes detected that may affect test coverage.
+      
+      ### Actions to maintain/improve coverage:
+      
+      1. **Check current coverage baseline:**
+         ```bash
+         npx vitest run --coverage
+         ```
+         
+      2. **Ensure your changes include corresponding tests:**
+         - Create/update tests for new functionality
+         - Modify existing tests for changed behavior
+         - Add edge case tests for complex logic
+         
+      3. **Verify coverage hasn't decreased:**
+         ```bash
+         npx vitest run --coverage
+         ```
+         
+      4. **Review coverage report:**
+         - Check uncovered lines in changed files
+         - Focus on adding tests for critical paths
+         - Document any intentional coverage exclusions
+      
+      ### Coverage Standards
+      
+      - Aim for incremental coverage improvement with each PR
+      - Critical business logic should maintain >85% coverage
+      - New features should include tests for main use cases
+
+  - type: execute_script
+    conditions:
+      - type: branch
+        pattern: "^(main|master|dev|develop|release/.*)$"
+    language: bash
+    script: |
+      #!/bin/bash
+      set -e
+      
+      echo "Checking test coverage for significant code changes..."
+      
+      # Store current coverage data
+      current_coverage_dir=$(mktemp -d)
+      npx vitest run --coverage --outputFile="$current_coverage_dir/coverage-summary.json"
+      
+      if [ ! -f "$current_coverage_dir/coverage-summary.json" ]; then
+        echo "Failed to generate coverage report"
+        exit 1
+      fi
+      
+      # Extract overall coverage percentage
+      overall_coverage=$(jq -r '.total.lines.pct' "$current_coverage_dir/coverage-summary.json")
+      
+      echo "Current overall line coverage: $overall_coverage%"
+      
+      # Check if we have a stored baseline to compare against
+      if [ -f ".coverage-baseline.json" ]; then
+        baseline_coverage=$(jq -r '.total.lines.pct' ".coverage-baseline.json")
+        echo "Previous baseline coverage: $baseline_coverage%"
+        
+        # Calculate difference
+        coverage_diff=$(awk "BEGIN {print $overall_coverage - $baseline_coverage}")
+        
+        if (( $(echo "$coverage_diff < -1.0" | bc -l) )); then
+          echo "⚠️ WARNING: Test coverage has decreased by more than 1% ($coverage_diff%)"
+          echo "Please add additional tests to maintain or improve coverage"
+          exit 1
+        elif (( $(echo "$coverage_diff < 0" | bc -l) )); then
+          echo "ℹ️ NOTE: Minor coverage decrease detected ($coverage_diff%)"
+          echo "Consider adding tests to maintain coverage levels"
+        else
+          echo "✅ Coverage maintained or improved! ($coverage_diff%)"
+        fi
+      else
+        echo "No baseline coverage found. Setting current coverage as baseline."
+        cp "$current_coverage_dir/coverage-summary.json" ".coverage-baseline.json"
+      fi
+      
+      # Cleanup
+      rm -rf "$current_coverage_dir"
+
+variables:
+  MIN_COVERAGE_THRESHOLD:
+    description: Minimum acceptable coverage percentage
+    type: number
+    default: 80
+  COVERAGE_DECREASE_THRESHOLD:
+    description: Maximum acceptable coverage decrease percentage
+    type: number
+    default: 1.0
+
+examples:
+  - input: |
+      # Developer adds new feature without tests
+      * Added new utility function with 20 lines
+      * No corresponding test file created
+    output: |
+      Suggestion to create tests for the new utility function to maintain coverage
+
+  - input: |
+      # Developer modifies existing file and adds tests
+      * Changed behavior of authentication logic
+      * Updated corresponding test file
+    output: |
+      Verification that test coverage is maintained for the modified code
+
+metadata:
+  priority: high
+  version: 1.0
+</rule> 
