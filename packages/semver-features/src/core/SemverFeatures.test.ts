@@ -3,24 +3,42 @@ import { SemverFeatures } from './SemverFeatures';
 
 describe('SemverFeatures', () => {
   describe('dumpFeatures', () => {
-    it('should correctly dump feature information', () => {
-      // Mock console.table
+    it('should log feature information to console using console.table', () => {
+      // Arrange
       const consoleSpy = vi.spyOn(console, 'table').mockImplementation(() => {});
-      
       const features = new SemverFeatures({ version: '1.0.0' });
       
-      // Register some test features
+      // Register test features
       features.register('feature1', '0.5.0');  // should be enabled
       features.register('feature2', '2.0.0');  // should be disabled
       features.register('feature3', true);     // explicitly enabled
       features.register('feature4', false);    // explicitly disabled
       
-      const result = features.dumpFeatures();
+      // Act
+      features.dumpFeatures();
       
-      // Verify console.table was called
+      // Assert
       expect(consoleSpy).toHaveBeenCalledTimes(1);
       
-      // Verify returned data
+      // Cleanup
+      consoleSpy.mockRestore();
+    });
+    
+    it('should return array of feature information with correct enabled states', () => {
+      // Arrange
+      vi.spyOn(console, 'table').mockImplementation(() => {});
+      const features = new SemverFeatures({ version: '1.0.0' });
+      
+      // Register test features
+      features.register('feature1', '0.5.0');  // should be enabled
+      features.register('feature2', '2.0.0');  // should be disabled
+      features.register('feature3', true);     // explicitly enabled
+      features.register('feature4', false);    // explicitly disabled
+      
+      // Act
+      const result = features.dumpFeatures();
+      
+      // Assert
       expect(result).toEqual([
         { name: 'feature1', enabled: true },
         { name: 'feature2', enabled: false },
@@ -28,18 +46,37 @@ describe('SemverFeatures', () => {
         { name: 'feature4', enabled: false }
       ]);
       
+      // Cleanup
+      vi.restoreAllMocks();
+    });
+    
+    it('should return empty array when no features are registered', () => {
+      // Arrange
+      const consoleSpy = vi.spyOn(console, 'table').mockImplementation(() => {});
+      const features = new SemverFeatures({ version: '1.0.0' });
+      
+      // Act
+      const result = features.dumpFeatures();
+      
+      // Assert
+      expect(result).toEqual([]);
+      
+      // Cleanup
       consoleSpy.mockRestore();
     });
     
-    it('should handle empty features list', () => {
+    it('should call console.table with empty array when no features are registered', () => {
+      // Arrange
       const consoleSpy = vi.spyOn(console, 'table').mockImplementation(() => {});
-      
       const features = new SemverFeatures({ version: '1.0.0' });
-      const result = features.dumpFeatures();
       
+      // Act
+      features.dumpFeatures();
+      
+      // Assert
       expect(consoleSpy).toHaveBeenCalledWith([]);
-      expect(result).toEqual([]);
       
+      // Cleanup
       consoleSpy.mockRestore();
     });
   });
