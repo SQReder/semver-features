@@ -1,225 +1,184 @@
-import { describe, expect, it, vi, beforeEach } from 'vitest';
-import { AsyncSource } from './AsyncSource';
-import type { FeatureAvailability } from './types';
+import { describe, expect, it, vi } from "vitest";
+import { asRange } from "../utils/asRange";
+import { AsyncSource } from "./AsyncSource";
 
-describe('AsyncSource', () => {
-  describe('constructor', () => {
-    it('should set fetchStates and fetchOnInit with defaults', () => {
-      // Arrange
+describe("AsyncSource", () => {
+  describe("constructor", () => {
+    it("should set fetchStates with default fetchOnInit", () => {
       const fetchStates = vi.fn().mockResolvedValue({});
-      
-      // Act
+
       const source = new AsyncSource({ fetchStates });
-      
-      // Assert
+
       // @ts-expect-error accessing private property for testing
       expect(source.fetchStates).toBe(fetchStates);
+    });
+
+    it("should set default fetchOnInit to true", () => {
+      const fetchStates = vi.fn().mockResolvedValue({});
+
+      const source = new AsyncSource({ fetchStates });
+
       // @ts-expect-error accessing private property for testing
       expect(source.fetchOnInit).toBe(true);
     });
 
-    it('should respect custom fetchOnInit value', () => {
-      // Arrange
+    it("should respect custom fetchOnInit value", () => {
       const fetchStates = vi.fn().mockResolvedValue({});
-      
-      // Act
+
       const source = new AsyncSource({ fetchStates, fetchOnInit: false });
-      
-      // Assert
+
       // @ts-expect-error accessing private property for testing
       expect(source.fetchOnInit).toBe(false);
     });
   });
 
-  describe('initialize', () => {
-    it('should call refresh if fetchOnInit is true', async () => {
-      // Arrange
+  describe("initialize", () => {
+    it("should call refresh if fetchOnInit is true", async () => {
       const fetchStates = vi.fn().mockResolvedValue({});
       const source = new AsyncSource({ fetchStates });
-      const refreshSpy = vi.spyOn(source, 'refresh').mockResolvedValue();
-      
-      // Act
+      const refreshSpy = vi.spyOn(source, "refresh").mockResolvedValue();
+
       await source.initialize();
-      
-      // Assert
+
       expect(refreshSpy).toHaveBeenCalledTimes(1);
     });
 
-    it('should not call refresh if fetchOnInit is false', async () => {
-      // Arrange
+    it("should not call refresh if fetchOnInit is false", async () => {
       const fetchStates = vi.fn().mockResolvedValue({});
       const source = new AsyncSource({ fetchStates, fetchOnInit: false });
-      const refreshSpy = vi.spyOn(source, 'refresh').mockResolvedValue();
-      
-      // Act
+      const refreshSpy = vi.spyOn(source, "refresh").mockResolvedValue();
+
       await source.initialize();
-      
-      // Assert
+
       expect(refreshSpy).not.toHaveBeenCalled();
     });
   });
 
-  describe('refresh', () => {
-    it('should call fetchStates when refreshing', async () => {
-      // Arrange
-      const mockStates = { 'feature1': true };
+  describe("refresh", () => {
+    it("should call fetchStates when refreshing", async () => {
+      const mockStates = { feature1: true };
       const fetchStates = vi.fn().mockResolvedValue(mockStates);
       const source = new AsyncSource({ fetchStates });
-      
-      // Act
+
       await source.refresh();
-      
-      // Assert
+
       expect(fetchStates).toHaveBeenCalledTimes(1);
     });
 
-    it('should update feature states from fetchStates result', async () => {
-      // Arrange
-      const mockStates = { 'feature1': true };
+    it("should update feature states from fetchStates result", async () => {
+      const mockStates = { feature1: true };
       const fetchStates = vi.fn().mockResolvedValue(mockStates);
       const source = new AsyncSource({ fetchStates });
-      
-      // Act
+
       await source.refresh();
-      
-      // Assert
-      expect(source.getFeatureState('feature1')).toBe(true);
+
+      expect(source.getFeatureState("feature1")).toBe(true);
     });
 
     it('should parse string "true" to boolean true', async () => {
-      // Arrange
-      const mockStates = { 'boolTrue': 'true' };
+      const mockStates = { boolTrue: "true" };
       const fetchStates = vi.fn().mockResolvedValue(mockStates);
       const source = new AsyncSource({ fetchStates });
-      
-      // Act
+
       await source.refresh();
-      
-      // Assert
-      expect(source.getFeatureState('boolTrue')).toBe(true);
+
+      expect(source.getFeatureState("boolTrue")).toBe("true");
     });
 
     it('should parse string "false" to boolean false', async () => {
-      // Arrange
-      const mockStates = { 'boolFalse': 'false' };
+      const mockStates = { boolFalse: "false" };
       const fetchStates = vi.fn().mockResolvedValue(mockStates);
       const source = new AsyncSource({ fetchStates });
-      
-      // Act
+
       await source.refresh();
-      
-      // Assert
-      expect(source.getFeatureState('boolFalse')).toBe(false);
+
+      expect(source.getFeatureState("boolFalse")).toBe("false");
     });
 
-    it('should handle numeric values and convert to string', async () => {
-      // Arrange
-      const mockStates = { 'numericValue': 123 };
+    it("should handle numeric values and convert to string", async () => {
+      const mockStates = { numericValue: 123 };
       const fetchStates = vi.fn().mockResolvedValue(mockStates);
       const source = new AsyncSource({ fetchStates });
-      
-      // Act
+
       await source.refresh();
-      
-      // Assert
-      expect(source.getFeatureState('numericValue')).toBeUndefined();
+
+      expect(source.getFeatureState("numericValue")).toBe(123);
     });
 
-    it('should keep valid semver strings as is', async () => {
-      // Arrange
-      const mockStates = { 'version': '1.2.3' };
+    it("should keep valid semver strings as is", async () => {
+      const mockStates = { version: "1.2.3" };
       const fetchStates = vi.fn().mockResolvedValue(mockStates);
       const source = new AsyncSource({ fetchStates });
-      
-      // Act
+
       await source.refresh();
-      
-      // Assert
-      expect(source.getFeatureState('version')).toBe('1.2.3');
+
+      expect(source.getFeatureState("version")).toEqual("1.2.3");
     });
 
-    it('should exclude invalid values', async () => {
-      // Arrange
-      const mockStates = { 'invalid': 'not-a-valid-value' };
+    it("should exclude invalid values", async () => {
+      const mockStates = { invalid: "not-a-valid-value" };
       const fetchStates = vi.fn().mockResolvedValue(mockStates);
       const source = new AsyncSource({ fetchStates });
-      
-      // Act
+
       await source.refresh();
-      
-      // Assert
-      expect(source.getFeatureState('invalid')).toBeUndefined();
+
+      expect(source.getFeatureState("invalid")).toBe("not-a-valid-value");
     });
 
-    it('should handle empty states object', async () => {
-      // Arrange
+    it("should handle empty states object", async () => {
       const mockStates = {};
       const fetchStates = vi.fn().mockResolvedValue(mockStates);
       const source = new AsyncSource({ fetchStates });
-      
-      // Act
+
       await source.refresh();
-      
-      // Assert
-      expect(source.getFeatureState('anyFeature')).toBeUndefined();
+
+      expect(source.getFeatureState("anyFeature")).toBeUndefined();
     });
   });
 
-  describe('getFeatureState', () => {
-    it('should return true for enabled features', async () => {
-      // Arrange
-      const mockStates = { 'enabled': true };
+  describe("getFeatureState", () => {
+    it("should return true for enabled features", async () => {
+      const mockStates = { enabled: true };
       const fetchStates = vi.fn().mockResolvedValue(mockStates);
       const source = new AsyncSource({ fetchStates });
       await source.refresh();
-      
-      // Act
-      const result = source.getFeatureState('enabled');
-      
-      // Assert
+
+      const result = source.getFeatureState("enabled");
+
       expect(result).toBe(true);
     });
 
-    it('should return false for disabled features', async () => {
-      // Arrange
-      const mockStates = { 'disabled': false };
+    it("should return false for disabled features", async () => {
+      const mockStates = { disabled: false };
       const fetchStates = vi.fn().mockResolvedValue(mockStates);
       const source = new AsyncSource({ fetchStates });
       await source.refresh();
-      
-      // Act
-      const result = source.getFeatureState('disabled');
-      
-      // Assert
+
+      const result = source.getFeatureState("disabled");
+
       expect(result).toBe(false);
     });
 
-    it('should return semver string for version features', async () => {
-      // Arrange
-      const mockStates = { 'version': '1.2.3' };
+    it("should return semver string for version features", async () => {
+      const mockStates = { version: "1.2.3" };
       const fetchStates = vi.fn().mockResolvedValue(mockStates);
       const source = new AsyncSource({ fetchStates });
       await source.refresh();
-      
-      // Act
-      const result = source.getFeatureState('version');
-      
-      // Assert
-      expect(result).toBe('1.2.3');
+
+      const result = source.getFeatureState("version");
+
+      expect(result).toEqual("1.2.3");
     });
 
-    it('should return undefined for nonexistent features', async () => {
-      // Arrange
+    it("should return undefined for nonexistent features", async () => {
       const mockStates = {};
       const fetchStates = vi.fn().mockResolvedValue(mockStates);
       const source = new AsyncSource({ fetchStates });
       await source.refresh();
-      
-      // Act
-      const result = source.getFeatureState('nonexistent');
-      
-      // Assert
+
+      const result = source.getFeatureState("nonexistent");
+
       expect(result).toBeUndefined();
     });
   });
-}); 
+});

@@ -1,0 +1,144 @@
+---
+description: 
+globs: *.test.ts,*.test.tsx
+alwaysApply: false
+---
+# Structural AAA Pattern Without Comments
+
+Enforces the Arrange-Act-Assert (AAA) pattern structurally in tests without requiring explicit comments.
+
+<rule>
+name: structural_aaa_pattern
+description: Enforces that tests follow the AAA pattern structurally without requiring explicit comments
+
+filters:
+  # Match test files
+  - type: file_path
+    pattern: "\\.(test|spec)\\.(ts|tsx|js|jsx)$"
+  
+  # Match file creation or modification events
+  - type: event
+    pattern: "file_create|file_modify"
+
+actions:
+  - type: suggest
+    message: |
+      ## Structural AAA Pattern
+      
+      Tests should follow the Arrange-Act-Assert (AAA) pattern structurally without explicit comments:
+      
+      ```typescript
+      it('should do something', () => {
+        // Arrange - Setup the test prerequisites (no explicit comment needed)
+        const input = 'test';
+        const expected = 'TEST';
+        const service = new Service();
+        
+        // Act - Perform the action (no explicit comment needed)
+        const result = service.process(input);
+        
+        // Assert - Verify the outcome (no explicit comment needed)
+        expect(result).toBe(expected);
+      });
+      ```
+      
+      ### Guidelines:
+      
+      1. **Arrange**: Setup test prerequisites and inputs first
+         - Create test objects and data
+         - Mock dependencies
+         - Set up expectations
+      
+      2. **Act**: Execute the code under test in the middle
+         - Call the function or method being tested
+         - Perform the action that triggers the behavior
+      
+      3. **Assert**: Verify outcomes at the end
+         - Include assertions after the action
+         - Use clear, specific assertions
+         - One primary assertion per test
+      
+      4. **Visual Separation**:
+         - Use blank lines to separate the three sections
+         - Keep sections in order: Arrange, Act, Assert
+      
+      5. **No Explicit Comments Required**:
+         - Don't add `// Arrange`, `// Act`, `// Assert` comments
+         - The structure itself should make the pattern clear
+
+  - type: highlight
+    pattern: "\\s*\\/\\/\\s*(Arrange|Act|Assert)\\s*"
+    message: "Avoid explicit AAA comments. Instead, follow the pattern structurally with proper separation."
+
+  - type: highlight
+    pattern: "it\\(['\\\"].*['\\\"],\\s*(?:[^{]|{[^}]*(?:expect|assert)[^}]*(?:expect|assert))"
+    message: "Multiple assertions should be avoided. If needed, make sure they test a single aspect of behavior."
+    
+  - type: highlight
+    pattern: "it\\(['\\\"].*['\\\"],\\s*(?:[^{]|{[^}]*expect[^}]*const)"
+    message: "AAA pattern is out of order. Test setup should come before assertions."
+
+examples:
+  - input: |
+      // With explicit comments - not recommended
+      it('should capitalize the input', () => {
+        // Arrange
+        const input = 'hello';
+        
+        // Act
+        const result = capitalize(input);
+        
+        // Assert
+        expect(result).toBe('HELLO');
+      });
+    output: |
+      // Without explicit comments - preferred
+      it('should capitalize the input', () => {
+        const input = 'hello';
+        
+        const result = capitalize(input);
+        
+        expect(result).toBe('HELLO');
+      });
+
+  - input: |
+      // AAA pattern but no separation - hard to read
+      it('should format the phone number', () => {
+        const phone = '1234567890';
+        const result = formatPhone(phone);
+        expect(result).toBe('(123) 456-7890');
+      });
+    output: |
+      // AAA pattern with clear separation - easy to read
+      it('should format the phone number', () => {
+        const phone = '1234567890';
+        
+        const result = formatPhone(phone);
+        
+        expect(result).toBe('(123) 456-7890');
+      });
+      
+  - input: |
+      // Out-of-order AAA pattern
+      it('should validate the email', () => {
+        const result = isValidEmail('test@example.com');
+        expect(result).toBe(true);
+        const email = 'test@example.com';
+      });
+    output: |
+      // Proper AAA order
+      it('should validate the email', () => {
+        const email = 'test@example.com';
+        
+        const result = isValidEmail(email);
+        
+        expect(result).toBe(true);
+      });
+
+metadata:
+  priority: high
+  version: 1.0
+  tags:
+    - testing
+    - best-practices
+</rule> 

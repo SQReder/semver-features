@@ -3,14 +3,15 @@
  */
 
 import { Range, SemVer } from "semver";
-import type { FeatureStateSource } from "../sources/types";
+import type { FeatureAvailability, FeatureStateSource } from "../sources/types";
 import type {
   ExecuteOptions,
   FeatureOptions,
   FoldOptions,
   MapOptions,
-  SelectOptions
+  SelectOptions,
 } from "../utils/types";
+import { parseSourceValue } from "../sources/valueParser";
 
 /**
  * FeatureValue class for handling feature-dependent values and transformations
@@ -80,12 +81,12 @@ export class Feature {
    */
   private determineEnabledState(): boolean {
     // Find first defined state from sources or fall back to minVersion
-    let effectiveState = this.versionsRange;
+    let effectiveState: FeatureAvailability | undefined = this.versionsRange;
 
     for (const source of this.sources) {
       const state = source.getFeatureState(this.name);
       if (state !== undefined) {
-        effectiveState = state;
+        effectiveState = parseSourceValue(state);
         break;
       }
     }

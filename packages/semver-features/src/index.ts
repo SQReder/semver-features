@@ -3,8 +3,8 @@
  */
 
 // Core exports
-export { SemverFeatures } from './core/SemverFeatures';
-export { Feature, FeatureValue } from './core/Feature';
+export { SemverFeatures } from "./core/SemverFeatures";
+export { Feature, FeatureValue } from "./core/Feature";
 
 // Sources exports
 export {
@@ -17,8 +17,8 @@ export {
   SessionStorageSource,
   type SessionStorageSourceOptions,
   AsyncSource,
-  type AsyncSourceOptions
-} from './sources';
+  type AsyncSourceOptions,
+} from "./sources";
 
 // Type exports
 export type {
@@ -29,5 +29,7 @@ export type {
   MapOptions,
   FoldOptions,
   ExecuteOptions,
-  RenderComponentOptions
-} from './utils/types'; 
+  RenderComponentOptions,
+} from "./utils/types";
+
+export { asRange } from "./utils/asRange";

@@ -2,18 +2,8 @@
  * Type definitions for the SemVer-based feature toggle library
  */
 
-import { Range, SemVer } from 'semver';
-import type { FeatureStateSource } from '../sources/types';
-
-// We'll make ReactNode optional and provide a fallback type
-type ReactNodeType = any; // Fallback type when React is not available
-
-/**
- * Type definitions for SemVer strings
- */
-export type BaseSemver = `${number}.${number}.${number}`;
-export type SemverWithSuffix = `${BaseSemver}-${string}`;
-export type Semver = BaseSemver | SemverWithSuffix;
+import { Range, SemVer } from "semver";
+import type { FeatureStateSource } from "../sources/types";
 
 /**
  * Options for initializing the SemverFeatures class
@@ -38,14 +28,14 @@ export interface FeatureOptions {
    * Unique name for the feature
    */
   name: string;
-  
+
   /**
    * The semver range expression or boolean value that determines if the feature is enabled
    * Can be a semver range expression (e.g. '>1.0.0', '1.x', etc.)
    * Can also be a boolean to explicitly enable/disable
    */
   versionsRange: Range | boolean;
-  
+
   /**
    * Current application version
    */
@@ -65,7 +55,7 @@ export interface ExecuteOptions<R> {
    * Function to execute when feature is enabled
    */
   enabled: () => R;
-  
+
   /**
    * Function to execute when feature is disabled
    */
@@ -80,7 +70,7 @@ export interface RenderOptions<T, U> {
    * Function that returns the component to render when feature is enabled
    */
   enabled: () => T;
-  
+
   /**
    * Function that returns the component to render when feature is disabled
    */
@@ -95,7 +85,7 @@ export interface RenderComponentOptions<T, U> {
    * Function that returns the React component to render when feature is enabled
    */
   enabled: () => T;
-  
+
   /**
    * Function that returns the React component to render when feature is disabled
    */
@@ -110,7 +100,7 @@ export interface SelectOptions<T, U> {
    * Value to use when feature is enabled
    */
   enabled: T;
-  
+
   /**
    * Value to use when feature is disabled
    */
@@ -125,7 +115,7 @@ export interface MapOptions<T, U, V, W> {
    * Function to transform the enabled value
    */
   enabled: (value: T) => V;
-  
+
   /**
    * Function to transform the disabled value
    */
@@ -140,9 +130,9 @@ export interface FoldOptions<T, U, R> {
    * Function to transform the enabled value to the result type
    */
   enabled: (value: T) => R;
-  
+
   /**
    * Function to transform the disabled value to the result type
    */
   disabled: (value: U) => R;
-} 
+}

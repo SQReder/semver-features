@@ -2,14 +2,13 @@
  * Async-based feature state source
  */
 
-import type { FeatureAvailability, FeatureStateSource } from './types';
-import { parseSourceValue } from './valueParser';
+import type { FeatureStateSource } from "./types";
 
 export interface AsyncSourceOptions {
   /**
    * Function that fetches feature states asynchronously
    */
-  fetchStates: () => Promise<Record<string, FeatureAvailability | string | boolean>>;
+  fetchStates: () => Promise<Record<string, string | boolean>>;
 
   /**
    * Whether to fetch data on initialization (default: true)
@@ -18,8 +17,8 @@ export interface AsyncSourceOptions {
 }
 
 export class AsyncSource implements FeatureStateSource {
-  private states: Record<string, FeatureAvailability> = {};
-  private fetchStates: () => Promise<Record<string, FeatureAvailability | string | boolean>>;
+  private states: Record<string, string | boolean> = {};
+  private fetchStates: () => Promise<Record<string, string | boolean>>;
   private fetchOnInit: boolean;
 
   constructor(options: AsyncSourceOptions) {
@@ -34,25 +33,10 @@ export class AsyncSource implements FeatureStateSource {
   }
 
   async refresh(): Promise<void> {
-    const rawStates = await this.fetchStates();
-    const states: Record<string, FeatureAvailability> = {};
-
-    // Parse raw values into proper feature states
-    for (const [key, value] of Object.entries(rawStates)) {
-      if (typeof value === 'boolean') {
-        states[key] = value;
-      } else {
-        const parsed = parseSourceValue(String(value));
-        if (parsed !== undefined) {
-          states[key] = parsed;
-        }
-      }
-    }
-
-    this.states = states;
+    this.states = await this.fetchStates();
   }
 
-  getFeatureState(featureId: string): FeatureAvailability | undefined {
+  getFeatureState(featureId: string) {
     return this.states[featureId];
   }
-} 
+}

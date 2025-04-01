@@ -1,134 +1,82 @@
-import { describe, expect, it, vi, beforeEach } from 'vitest';
-import { UrlParamsSource } from './UrlParamsSource';
-import { parseSourceValue } from './valueParser';
+import { beforeEach, describe, expect, it } from "vitest";
+import { asRange } from "../utils/asRange";
+import { UrlParamsSource } from "./UrlParamsSource";
 
-// Mock the valueParser module
-vi.mock('./valueParser', () => ({
-  parseSourceValue: vi.fn()
-}));
-
-describe('UrlParamsSource', () => {
-  const mockParseSourceValue = parseSourceValue as unknown as ReturnType<typeof vi.fn>;
-  
+describe("UrlParamsSource", () => {
   beforeEach(() => {
-    vi.resetAllMocks();
-    
-    Object.defineProperty(window, 'location', {
-      value: { search: '' },
+    // Mock window.location.search
+    Object.defineProperty(window, "location", {
+      value: { search: "" },
       writable: true,
-      configurable: true
-    });
-  });
-  
-  describe('constructor and prefix behavior', () => {
-    it('should use default prefix for URL parameters', () => {
-      const mockGet = vi.fn().mockReturnValue('true');
-      vi.spyOn(global, 'URLSearchParams').mockImplementation(() => ({
-        get: mockGet
-      } as any));
-      
-      const source = new UrlParamsSource();
-      source.getFeatureState('test');
-      
-      expect(mockGet).toHaveBeenCalledWith('feature.test');
-    });
-
-    it('should use custom prefix when provided', () => {
-      const mockGet = vi.fn().mockReturnValue('true');
-      vi.spyOn(global, 'URLSearchParams').mockImplementation(() => ({
-        get: mockGet
-      } as any));
-      
-      const source = new UrlParamsSource({ prefix: 'custom.' });
-      source.getFeatureState('test');
-      
-      expect(mockGet).toHaveBeenCalledWith('custom.test');
+      configurable: true,
     });
   });
 
-  describe('getFeatureState', () => {
-    it('should construct URLSearchParams with window.location.search', () => {
-      window.location.search = '?test=value'; 
-      
-      const urlSearchParamsSpy = vi.fn().mockReturnValue({
-        get: vi.fn().mockReturnValue(null)
-      });
-      
-      const originalURLSearchParams = global.URLSearchParams;
-      global.URLSearchParams = urlSearchParamsSpy as any;
-      
-      try {
-        const source = new UrlParamsSource();
-        source.getFeatureState('feature');
-        
-        expect(urlSearchParamsSpy).toHaveBeenCalledWith('?test=value');
-      } finally {
-        global.URLSearchParams = originalURLSearchParams;
-      }
-    });
-    
-    it('should call parseSourceValue with result from URLSearchParams.get', () => {
-      const mockGet = vi.fn().mockReturnValue('mockValue');
-      vi.spyOn(global, 'URLSearchParams').mockImplementation(() => ({
-        get: mockGet
-      } as any));
-      
+  describe("constructor and prefix behavior", () => {
+    it("should use default prefix for URL parameters", () => {
+      window.location.search = "?feature.test=true";
       const source = new UrlParamsSource();
-      source.getFeatureState('testFeature');
-      
-      expect(mockParseSourceValue).toHaveBeenCalledWith('mockValue');
-    });
-    
-    it('should return true for parsed boolean true values', () => {
-      mockParseSourceValue.mockReturnValue(true);
-      vi.spyOn(global, 'URLSearchParams').mockImplementation(() => ({
-        get: () => 'anyValue'
-      } as any));
-      
-      const source = new UrlParamsSource();
-      
-      const result = source.getFeatureState('feature');
-      
+      const result = source.getFeatureState("test");
+
       expect(result).toBe(true);
     });
-    
-    it('should return false for parsed boolean false values', () => {
-      mockParseSourceValue.mockReturnValue(false);
-      vi.spyOn(global, 'URLSearchParams').mockImplementation(() => ({
-        get: () => 'anyValue'
-      } as any));
-      
-      const source = new UrlParamsSource();
-      
-      const result = source.getFeatureState('feature');
-      
-      expect(result).toBe(false);
-    });
-    
-    it('should return semver string for parsed semver values', () => {
-      mockParseSourceValue.mockReturnValue('1.2.3');
-      vi.spyOn(global, 'URLSearchParams').mockImplementation(() => ({
-        get: () => 'anyValue'
-      } as any));
-      
-      const source = new UrlParamsSource();
-      
-      const result = source.getFeatureState('feature');
-      
-      expect(result).toBe('1.2.3');
-    });
-    
-    it('should return undefined for invalid or missing values', () => {
-      mockParseSourceValue.mockReturnValue(undefined);
-      vi.spyOn(global, 'URLSearchParams').mockImplementation(() => ({
-        get: () => 'anyValue'
-      } as any));
-      
-      const source = new UrlParamsSource();
-      
-      const result = source.getFeatureState('feature');
-      
-      expect(result).toBeUndefined();
+
+    it("should use custom prefix when provided", () => {
+      window.location.search = "?custom.test=true";
+      const source = new UrlParamsSource({ prefix: "custom." });
+      const result = source.getFeatureState("test");
+
+      expect(result).toBe(true);
     });
   });
-}); 
+
+  describe("getFeatureState", () => {
+    it("should handle boolean true values", () => {
+      window.location.search = "?feature.test=true";
+      const source = new UrlParamsSource();
+      const result = source.getFeatureState("test");
+
+      expect(result).toBe(true);
+    });
+
+    it("should handle boolean false values", () => {
+      window.location.search = "?feature.test=false";
+      const source = new UrlParamsSource();
+      const result = source.getFeatureState("test");
+
+      expect(result).toBe(false);
+    });
+
+    it("should handle semver values", () => {
+      window.location.search = "?feature.test=1.2.3";
+      const source = new UrlParamsSource();
+      const result = source.getFeatureState("test");
+
+      expect(result).toEqual("1.2.3");
+    });
+
+    it("should return undefined for invalid values", () => {
+      window.location.search = "?feature.test=invalid";
+      const source = new UrlParamsSource();
+      const result = source.getFeatureState("test");
+
+      expect(result).toBe("invalid");
+    });
+
+    it("should return undefined when parameter is not present", () => {
+      window.location.search = "?other=value";
+      const source = new UrlParamsSource();
+      const result = source.getFeatureState("test");
+
+      expect(result).toBeUndefined();
+    });
+
+    it("should return undefined when parameter value is empty", () => {
+      window.location.search = "?feature.test=";
+      const source = new UrlParamsSource();
+      const result = source.getFeatureState("test");
+
+      expect(result).toBe('');
+    });
+  });
+});

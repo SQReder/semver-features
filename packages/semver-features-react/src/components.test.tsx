@@ -1,29 +1,30 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { render, screen, cleanup } from '@testing-library/react';
-import { Feature } from 'semver-features';
-import { FeatureToggle, FeatureEnabled, FeatureDisabled } from './components';
-import React from 'react';
+import { render, screen } from "@testing-library/react";
+import React from "react";
+import { asRange, Feature } from "semver-features/core";
+import * as semver from "semver";
+import { beforeEach, describe, expect, it } from "vitest";
+import { FeatureDisabled, FeatureEnabled, FeatureToggle } from "./components";
 
-describe('Feature Components', () => {
-  describe('FeatureToggle', () => {
-    let enabledFeature: Feature<boolean, boolean>;
-    let disabledFeature: Feature<boolean, boolean>;
+describe("Feature Components", () => {
+  describe("FeatureToggle", () => {
+    let enabledFeature: Feature;
+    let disabledFeature: Feature;
     let ComplexComponent: React.FC;
 
     beforeEach(() => {
       // Common test setup for this describe block
       enabledFeature = new Feature({
-        name: 'test-feature',
-        currentVersion: '1.0.0',
-        minVersion: true
+        name: "test-feature",
+        currentVersion: semver.parse("1.0.0")!,
+        versionsRange: true,
       });
 
       disabledFeature = new Feature({
-        name: 'test-feature',
-        currentVersion: '1.0.0',
-        minVersion: false
+        name: "test-feature",
+        currentVersion: semver.parse("1.0.0")!,
+        versionsRange: false,
       });
-      
+
       ComplexComponent = () => (
         <div data-testid="complex">
           <h1>Title</h1>
@@ -32,8 +33,8 @@ describe('Feature Components', () => {
       );
     });
 
-    describe('with enabled feature', () => {
-      it('should render enabled content', () => {
+    describe("with enabled feature", () => {
+      it("should render enabled content", () => {
         // Arrange & Act
         render(
           <FeatureToggle
@@ -42,12 +43,12 @@ describe('Feature Components', () => {
             disabled={<div>Disabled content</div>}
           />
         );
-        
+
         // Assert
-        expect(screen.getByText('Feature content')).toBeInTheDocument();
+        expect(screen.getByText("Feature content")).toBeInTheDocument();
       });
 
-      it('should not render disabled content', () => {
+      it("should not render disabled content", () => {
         // Arrange & Act
         render(
           <FeatureToggle
@@ -56,12 +57,12 @@ describe('Feature Components', () => {
             disabled={<div>Disabled content</div>}
           />
         );
-        
+
         // Assert
-        expect(screen.queryByText('Disabled content')).not.toBeInTheDocument();
+        expect(screen.queryByText("Disabled content")).not.toBeInTheDocument();
       });
-      
-      it('should render complex component title', () => {
+
+      it("should render complex component title", () => {
         // Arrange & Act
         render(
           <FeatureToggle
@@ -70,12 +71,12 @@ describe('Feature Components', () => {
             disabled={<div>Fallback</div>}
           />
         );
-        
+
         // Assert
-        expect(screen.getByText('Title')).toBeInTheDocument();
+        expect(screen.getByText("Title")).toBeInTheDocument();
       });
-      
-      it('should render complex component content paragraph', () => {
+
+      it("should render complex component content paragraph", () => {
         // Arrange & Act
         render(
           <FeatureToggle
@@ -84,12 +85,12 @@ describe('Feature Components', () => {
             disabled={<div>Fallback</div>}
           />
         );
-        
+
         // Assert
-        expect(screen.getByText('Content')).toBeInTheDocument();
+        expect(screen.getByText("Content")).toBeInTheDocument();
       });
-      
-      it('should render complex component with correct test id', () => {
+
+      it("should render complex component with correct test id", () => {
         // Arrange & Act
         render(
           <FeatureToggle
@@ -98,12 +99,12 @@ describe('Feature Components', () => {
             disabled={<div>Fallback</div>}
           />
         );
-        
+
         // Assert
-        expect(screen.getByTestId('complex')).toBeInTheDocument();
+        expect(screen.getByTestId("complex")).toBeInTheDocument();
       });
-      
-      it('should not render fallback content', () => {
+
+      it("should not render fallback content", () => {
         // Arrange & Act
         render(
           <FeatureToggle
@@ -112,14 +113,14 @@ describe('Feature Components', () => {
             disabled={<div>Fallback</div>}
           />
         );
-        
+
         // Assert
-        expect(screen.queryByText('Fallback')).not.toBeInTheDocument();
+        expect(screen.queryByText("Fallback")).not.toBeInTheDocument();
       });
     });
 
-    describe('with disabled feature', () => {
-      it('should render disabled content', () => {
+    describe("with disabled feature", () => {
+      it("should render disabled content", () => {
         // Arrange & Act
         render(
           <FeatureToggle
@@ -128,12 +129,12 @@ describe('Feature Components', () => {
             disabled={<div>Disabled content</div>}
           />
         );
-        
+
         // Assert
-        expect(screen.getByText('Disabled content')).toBeInTheDocument();
+        expect(screen.getByText("Disabled content")).toBeInTheDocument();
       });
 
-      it('should not render enabled content', () => {
+      it("should not render enabled content", () => {
         // Arrange & Act
         render(
           <FeatureToggle
@@ -142,12 +143,12 @@ describe('Feature Components', () => {
             disabled={<div>Disabled content</div>}
           />
         );
-        
+
         // Assert
-        expect(screen.queryByText('Feature content')).not.toBeInTheDocument();
+        expect(screen.queryByText("Feature content")).not.toBeInTheDocument();
       });
-      
-      it('should render nothing when disabled content is not provided', () => {
+
+      it("should render nothing when disabled content is not provided", () => {
         // Arrange & Act
         render(
           <FeatureToggle
@@ -157,12 +158,12 @@ describe('Feature Components', () => {
         );
 
         // Assert
-        expect(document.body.textContent).toBe('');
+        expect(document.body.textContent).toBe("");
       });
     });
-    
-    describe('unmounting behavior', () => {
-      it('should not cause errors when unmounting with enabled feature', () => {
+
+    describe("unmounting behavior", () => {
+      it("should not cause errors when unmounting with enabled feature", () => {
         // Arrange
         const { unmount } = render(
           <FeatureToggle
@@ -171,12 +172,12 @@ describe('Feature Components', () => {
             disabled={<div>Fallback</div>}
           />
         );
-        
+
         // Act & Assert (no error should be thrown)
         expect(() => unmount()).not.toThrow();
       });
-      
-      it('should not cause errors when unmounting with disabled feature', () => {
+
+      it("should not cause errors when unmounting with disabled feature", () => {
         // Arrange
         const { unmount } = render(
           <FeatureToggle
@@ -185,31 +186,31 @@ describe('Feature Components', () => {
             disabled={<div>Fallback</div>}
           />
         );
-        
+
         // Act & Assert (no error should be thrown)
         expect(() => unmount()).not.toThrow();
       });
     });
   });
 
-  describe('FeatureEnabled', () => {
-    let enabledFeature: Feature<string, string>;
-    let disabledFeature: Feature<string, string>;
+  describe("FeatureEnabled", () => {
+    let enabledFeature: Feature;
+    let disabledFeature: Feature;
     let ComplexComponent: React.FC;
 
     beforeEach(() => {
       enabledFeature = new Feature({
-        name: 'test-feature',
-        currentVersion: '2.0.0',
-        minVersion: '1.0.0' as const
+        name: "test-feature",
+        currentVersion: semver.parse("2.0.0")!,
+        versionsRange: asRange("1.0.0"),
       });
 
       disabledFeature = new Feature({
-        name: 'test-feature',
-        currentVersion: '0.9.0',
-        minVersion: '1.0.0' as const
+        name: "test-feature",
+        currentVersion: semver.parse("0.9.0")!,
+        versionsRange: asRange("1.0.0"),
       });
-      
+
       ComplexComponent = () => (
         <div data-testid="complex-enabled">
           <h2>Enabled Title</h2>
@@ -218,55 +219,55 @@ describe('Feature Components', () => {
       );
     });
 
-    it('should render children when feature is enabled', () => {
+    it("should render children when feature is enabled", () => {
       // Arrange & Act
       render(
         <FeatureEnabled feature={enabledFeature}>
           <div>Enabled content</div>
         </FeatureEnabled>
       );
-      
+
       // Assert
-      expect(screen.getByText('Enabled content')).toBeInTheDocument();
+      expect(screen.getByText("Enabled content")).toBeInTheDocument();
     });
 
-    it('should not render children when feature is disabled', () => {
+    it("should not render children when feature is disabled", () => {
       // Arrange & Act
       render(
         <FeatureEnabled feature={disabledFeature}>
           <div>Enabled content</div>
         </FeatureEnabled>
       );
-      
+
       // Assert
-      expect(screen.queryByText('Enabled content')).not.toBeInTheDocument();
+      expect(screen.queryByText("Enabled content")).not.toBeInTheDocument();
     });
 
-    it('should work with complex React components as children', () => {
+    it("should work with complex React components as children", () => {
       // Arrange & Act
       render(
         <FeatureEnabled feature={enabledFeature}>
           <ComplexComponent />
         </FeatureEnabled>
       );
-      
+
       // Assert
-      expect(screen.getByTestId('complex-enabled')).toBeInTheDocument();
+      expect(screen.getByTestId("complex-enabled")).toBeInTheDocument();
     });
-    
-    it('should render complex component content correctly', () => {
+
+    it("should render complex component content correctly", () => {
       // Arrange & Act
       render(
         <FeatureEnabled feature={enabledFeature}>
           <ComplexComponent />
         </FeatureEnabled>
       );
-      
+
       // Assert
-      expect(screen.getByText('Enabled Content')).toBeInTheDocument();
+      expect(screen.getByText("Enabled Content")).toBeInTheDocument();
     });
-    
-    it('should handle multiple instances in the same render tree', () => {
+
+    it("should handle multiple instances in the same render tree", () => {
       // Arrange & Act
       render(
         <div>
@@ -278,43 +279,43 @@ describe('Feature Components', () => {
           </FeatureEnabled>
         </div>
       );
-      
+
       // Assert
-      expect(screen.getByText('First instance')).toBeInTheDocument();
-      expect(screen.getByText('Second instance')).toBeInTheDocument();
+      expect(screen.getByText("First instance")).toBeInTheDocument();
+      expect(screen.getByText("Second instance")).toBeInTheDocument();
     });
-    
-    it('should not cause errors when unmounting', () => {
+
+    it("should not cause errors when unmounting", () => {
       // Arrange
       const { unmount } = render(
         <FeatureEnabled feature={enabledFeature}>
           <div>Unmounting content</div>
         </FeatureEnabled>
       );
-      
+
       // Act & Assert (no error should be thrown)
       expect(() => unmount()).not.toThrow();
     });
   });
 
-  describe('FeatureDisabled', () => {
-    let enabledFeature: Feature<string, string>;
-    let disabledFeature: Feature<string, string>;
+  describe("FeatureDisabled", () => {
+    let enabledFeature: Feature;
+    let disabledFeature: Feature;
     let ComplexComponent: React.FC;
 
     beforeEach(() => {
       enabledFeature = new Feature({
-        name: 'test-feature',
-        currentVersion: '2.0.0',
-        minVersion: '1.0.0' as const
+        name: "test-feature",
+        currentVersion: semver.parse("2.0.0")!,
+        versionsRange: asRange("1.0.0"),
       });
 
       disabledFeature = new Feature({
-        name: 'test-feature',
-        currentVersion: '0.9.0',
-        minVersion: '1.0.0' as const
+        name: "test-feature",
+        currentVersion: semver.parse("0.9.0")!,
+        versionsRange: asRange("1.0.0"),
       });
-      
+
       ComplexComponent = () => (
         <div data-testid="complex-disabled">
           <h2>Disabled Title</h2>
@@ -323,55 +324,55 @@ describe('Feature Components', () => {
       );
     });
 
-    it('should render children when feature is disabled', () => {
+    it("should render children when feature is disabled", () => {
       // Arrange & Act
       render(
         <FeatureDisabled feature={disabledFeature}>
           <div>Disabled content</div>
         </FeatureDisabled>
       );
-      
+
       // Assert
-      expect(screen.getByText('Disabled content')).toBeInTheDocument();
+      expect(screen.getByText("Disabled content")).toBeInTheDocument();
     });
 
-    it('should not render children when feature is enabled', () => {
+    it("should not render children when feature is enabled", () => {
       // Arrange & Act
       render(
         <FeatureDisabled feature={enabledFeature}>
           <div>Disabled content</div>
         </FeatureDisabled>
       );
-      
+
       // Assert
-      expect(screen.queryByText('Disabled content')).not.toBeInTheDocument();
+      expect(screen.queryByText("Disabled content")).not.toBeInTheDocument();
     });
 
-    it('should work with complex React components as children', () => {
+    it("should work with complex React components as children", () => {
       // Arrange & Act
       render(
         <FeatureDisabled feature={disabledFeature}>
           <ComplexComponent />
         </FeatureDisabled>
       );
-      
+
       // Assert
-      expect(screen.getByTestId('complex-disabled')).toBeInTheDocument();
+      expect(screen.getByTestId("complex-disabled")).toBeInTheDocument();
     });
-    
-    it('should render complex component content correctly', () => {
+
+    it("should render complex component content correctly", () => {
       // Arrange & Act
       render(
         <FeatureDisabled feature={disabledFeature}>
           <ComplexComponent />
         </FeatureDisabled>
       );
-      
+
       // Assert
-      expect(screen.getByText('Disabled Content')).toBeInTheDocument();
+      expect(screen.getByText("Disabled Content")).toBeInTheDocument();
     });
-    
-    it('should handle multiple instances in the same render tree', () => {
+
+    it("should handle multiple instances in the same render tree", () => {
       // Arrange & Act
       render(
         <div>
@@ -383,51 +384,51 @@ describe('Feature Components', () => {
           </FeatureDisabled>
         </div>
       );
-      
+
       // Assert
-      expect(screen.getByText('First instance')).toBeInTheDocument();
-      expect(screen.getByText('Second instance')).toBeInTheDocument();
+      expect(screen.getByText("First instance")).toBeInTheDocument();
+      expect(screen.getByText("Second instance")).toBeInTheDocument();
     });
-    
-    it('should not cause errors when unmounting', () => {
+
+    it("should not cause errors when unmounting", () => {
       // Arrange
       const { unmount } = render(
         <FeatureDisabled feature={disabledFeature}>
           <div>Unmounting content</div>
         </FeatureDisabled>
       );
-      
+
       // Act & Assert (no error should be thrown)
       expect(() => unmount()).not.toThrow();
     });
   });
 
-  describe('Integration', () => {
-    let parentFeatureEnabled: Feature<string, string>;
-    let childFeatureDisabled: Feature<string, string>;
-    let featureEnabled: Feature<string, string>;
+  describe("Integration", () => {
+    let parentFeatureEnabled: Feature;
+    let childFeatureDisabled: Feature;
+    let featureEnabled: Feature;
 
     beforeEach(() => {
       parentFeatureEnabled = new Feature({
-        name: 'parent',
-        currentVersion: '2.0.0',
-        minVersion: '1.0.0' as const
+        name: "parent",
+        currentVersion: semver.parse("2.0.0")!,
+        versionsRange: asRange("1.0.0"),
       });
 
       childFeatureDisabled = new Feature({
-        name: 'child',
-        currentVersion: '0.9.0',
-        minVersion: '1.0.0' as const
+        name: "child",
+        currentVersion: semver.parse("0.9.0")!,
+        versionsRange: asRange("1.0.0"),
       });
 
       featureEnabled = new Feature({
-        name: 'test-feature',
-        currentVersion: '2.0.0',
-        minVersion: '1.0.0' as const
+        name: "test-feature",
+        currentVersion: semver.parse("2.0.0")!,
+        versionsRange: asRange("1.0.0"),
       });
     });
 
-    describe('with nested components', () => {
+    describe("with nested components", () => {
       const renderNestedComponents = () => {
         render(
           <FeatureToggle
@@ -446,41 +447,41 @@ describe('Feature Components', () => {
           />
         );
       };
-      
-      it('should render parent content when parent feature is enabled', () => {
+
+      it("should render parent content when parent feature is enabled", () => {
         // Arrange & Act
         renderNestedComponents();
-        
+
         // Assert
-        expect(screen.getByText('Parent')).toBeInTheDocument();
+        expect(screen.getByText("Parent")).toBeInTheDocument();
       });
 
-      it('should not render parent disabled content when parent is enabled', () => {
+      it("should not render parent disabled content when parent is enabled", () => {
         // Arrange & Act
         renderNestedComponents();
-        
+
         // Assert
-        expect(screen.queryByText('Parent Disabled')).not.toBeInTheDocument();
-      });
-      
-      it('should render child disabled content when parent is enabled but child is disabled', () => {
-        // Arrange & Act
-        renderNestedComponents();
-        
-        // Assert
-        expect(screen.getByText('Child Disabled')).toBeInTheDocument();
+        expect(screen.queryByText("Parent Disabled")).not.toBeInTheDocument();
       });
 
-      it('should not render child enabled content when parent is enabled but child is disabled', () => {
+      it("should render child disabled content when parent is enabled but child is disabled", () => {
         // Arrange & Act
         renderNestedComponents();
-        
+
         // Assert
-        expect(screen.queryByText('Child Enabled')).not.toBeInTheDocument();
+        expect(screen.getByText("Child Disabled")).toBeInTheDocument();
+      });
+
+      it("should not render child enabled content when parent is enabled but child is disabled", () => {
+        // Arrange & Act
+        renderNestedComponents();
+
+        // Assert
+        expect(screen.queryByText("Child Enabled")).not.toBeInTheDocument();
       });
     });
 
-    describe('with multiple component types', () => {
+    describe("with multiple component types", () => {
       const renderMultipleComponents = () => {
         render(
           <div>
@@ -498,61 +499,63 @@ describe('Feature Components', () => {
           </div>
         );
       };
-      
-      it('should render toggle enabled content when feature is enabled', () => {
+
+      it("should render toggle enabled content when feature is enabled", () => {
         // Arrange & Act
         renderMultipleComponents();
-        
+
         // Assert
-        expect(screen.getByText('Toggle Enabled')).toBeInTheDocument();
+        expect(screen.getByText("Toggle Enabled")).toBeInTheDocument();
       });
 
-      it('should not render toggle disabled content when feature is enabled', () => {
+      it("should not render toggle disabled content when feature is enabled", () => {
         // Arrange & Act
         renderMultipleComponents();
-        
+
         // Assert
-        expect(screen.queryByText('Toggle Disabled')).not.toBeInTheDocument();
-      });
-      
-      it('should render FeatureEnabled component content when feature is enabled', () => {
-        // Arrange & Act
-        renderMultipleComponents();
-        
-        // Assert
-        expect(screen.getByText('Feature Enabled')).toBeInTheDocument();
+        expect(screen.queryByText("Toggle Disabled")).not.toBeInTheDocument();
       });
 
-      it('should not render FeatureDisabled content when feature is enabled', () => {
+      it("should render FeatureEnabled component content when feature is enabled", () => {
         // Arrange & Act
         renderMultipleComponents();
-        
+
         // Assert
-        expect(screen.queryByText('Feature Disabled')).not.toBeInTheDocument();
+        expect(screen.getByText("Feature Enabled")).toBeInTheDocument();
+      });
+
+      it("should not render FeatureDisabled content when feature is enabled", () => {
+        // Arrange & Act
+        renderMultipleComponents();
+
+        // Assert
+        expect(screen.queryByText("Feature Disabled")).not.toBeInTheDocument();
       });
     });
 
     // Add new test for performance with many components
-    describe('performance', () => {
-      it('should handle many feature components in a single render tree', () => {
+    describe("performance", () => {
+      it("should handle many feature components in a single render tree", () => {
         // Arrange
         const enabledFeature = new Feature({
-          name: 'perf-feature',
-          currentVersion: '2.0.0',
-          minVersion: '1.0.0' as const
+          name: "perf-feature",
+          currentVersion: semver.parse("2.0.0")!,
+          versionsRange: asRange("1.0.0"),
         });
-        
+
         // Create array with 50 items
         const items = Array.from({ length: 50 }, (_, index) => index);
-        
+
         // Act - Render many components
         render(
           <div data-testid="perf-container">
-            {items.map(index => (
+            {items.map((index) => (
               <React.Fragment key={index}>
-                <FeatureToggle 
+                <FeatureToggle
                   feature={enabledFeature}
-                  enabled={<div data-testid={`toggle-${index}`}>Toggle {index}</div>}
+                  enabled={
+                    <div data-testid={`toggle-${index}`}>Toggle {index}</div>
+                  }
                   disabled={<div>Hidden</div>}
                 />
                 <FeatureEnabled feature={enabledFeature}>
@@ -562,17 +565,17 @@ describe('Feature Components', () => {
             ))}
           </div>
         );
-        
+
         // Assert - Verify components were rendered properly
-        const container = screen.getByTestId('perf-container');
+        const container = screen.getByTestId("perf-container");
         expect(container).toBeInTheDocument();
-        
+
         // Check a sample of rendered items
-        expect(screen.getByTestId('toggle-0')).toBeInTheDocument();
-        expect(screen.getByTestId('enabled-0')).toBeInTheDocument();
-        expect(screen.getByTestId('toggle-49')).toBeInTheDocument();
-        expect(screen.getByTestId('enabled-49')).toBeInTheDocument();
+        expect(screen.getByTestId("toggle-0")).toBeInTheDocument();
+        expect(screen.getByTestId("enabled-0")).toBeInTheDocument();
+        expect(screen.getByTestId("toggle-49")).toBeInTheDocument();
+        expect(screen.getByTestId("enabled-49")).toBeInTheDocument();
       });
     });
   });
-}); 
+});

@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { parseSourceValue } from './valueParser';
+import { asRange } from '../utils/asRange';
 
 describe('valueParser', () => {
   describe('parseSourceValue', () => {
@@ -40,11 +41,43 @@ describe('valueParser', () => {
       
       const result = parseSourceValue(input);
       
-      expect(result).toBe('1.2.3');
+      expect(result).toEqual(asRange('1.2.3'));
     });
 
     it('should return undefined for invalid values', () => {
       const input = 'not-a-boolean-or-semver';
+      
+      const result = parseSourceValue(input);
+      
+      expect(result).toBeUndefined();
+    });
+
+    it('should return undefined for empty string', () => {
+      const input = '';
+      
+      const result = parseSourceValue(input);
+      
+      expect(result).toBeUndefined();
+    });
+
+    it('should return undefined for whitespace string', () => {
+      const input = '   ';
+      
+      const result = parseSourceValue(input);
+      
+      expect(result).toBeUndefined();
+    });
+
+    it('should return undefined for numeric values', () => {
+      const input = '123';
+      
+      const result = parseSourceValue(input);
+      
+      expect(result).toBeUndefined();
+    });
+
+    it('should return undefined for invalid semver strings', () => {
+      const input = '1.2.3.4';
       
       const result = parseSourceValue(input);
       

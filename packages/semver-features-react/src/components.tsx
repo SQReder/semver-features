@@ -4,7 +4,7 @@
  */
 
 import * as React from 'react';
-import type { Feature } from 'semver-features';
+import type { Feature } from 'semver-features/core';
 
 /**
  * Properties for the FeatureToggle component

@@ -1,4 +1,4 @@
-import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { SessionStorageSource } from './SessionStorageSource';
 
 describe('SessionStorageSource', () => {
@@ -85,7 +85,25 @@ describe('SessionStorageSource', () => {
       
       const result = source.getFeatureState('version');
       
-      expect(result).toBe('1.2.3');
+      expect(result).toEqual(('1.2.3'));
+    });
+
+    it('should return undefined for invalid values', () => {
+      mockSessionStorage['feature.invalid'] = 'not-a-valid-value';
+      const source = new SessionStorageSource();
+      
+      const result = source.getFeatureState('invalid');
+      
+      expect(result).toBe('not-a-valid-value');
+    });
+
+    it('should return undefined for null values', () => {
+      mockSessionStorage['feature.null'] = 'null';
+      const source = new SessionStorageSource();
+      
+      const result = source.getFeatureState('null');
+      
+      expect(result).toBe(null);
     });
   });
 }); 

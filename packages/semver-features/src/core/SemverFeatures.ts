@@ -2,11 +2,11 @@
  * Main feature manager implementation
  */
 
-import { Feature } from './Feature';
-import type { Semver, SemverFeaturesOptions } from '../utils/types';
+import { SemVer } from 'semver';
 import type { FeatureStateSource } from '../sources/types';
-import { Range, SemVer } from 'semver';
 import { asRange } from '../utils/asRange';
+import type { SemverFeaturesOptions } from '../utils/types';
+import { Feature } from './Feature';
 
 /**
  * Main class for managing semver-based feature toggles

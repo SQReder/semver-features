@@ -8,10 +8,14 @@ import type { FeatureAvailability } from "./types";
  * @returns The parsed FeatureAvailability or undefined if parsing fails
  */
 export function parseSourceValue(
-  value: string | null | undefined
+  value: string | boolean | null | undefined
 ): FeatureAvailability | undefined {
   if (value === null || value === undefined) {
     return undefined;
+  }
+
+  if (typeof value === "boolean") {
+    return value;
   }
 
   // Try parsing as boolean first

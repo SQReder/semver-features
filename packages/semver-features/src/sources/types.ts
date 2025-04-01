@@ -18,7 +18,7 @@ export interface FeatureStateSource {
    * @param featureId The unique identifier of the feature
    * @returns Feature availability if available, undefined otherwise
    */
-  getFeatureState(featureId: string): FeatureAvailability | undefined;
+  getFeatureState(featureId: string): string | boolean | null | undefined;
 
   /**
    * Optional initialization method

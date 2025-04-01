@@ -182,7 +182,6 @@ describe("createSemverFeaturesJson factory function", () => {
         name: "feature1",
         description: "Feature 1",
         versionRange: ">=1.0.0",
-        enabledByDefault: true,
         deprecated: false,
       },
     ],

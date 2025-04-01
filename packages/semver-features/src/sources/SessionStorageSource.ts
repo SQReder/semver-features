@@ -2,8 +2,7 @@
  * SessionStorage-based feature state source
  */
 
-import type { FeatureAvailability, FeatureStateSource } from './types';
-import { parseSourceValue } from './valueParser';
+import type { FeatureStateSource } from './types';
 
 export interface SessionStorageSourceOptions {
   /**
@@ -19,9 +18,19 @@ export class SessionStorageSource implements FeatureStateSource {
     this.prefix = options.prefix ?? 'feature.';
   }
 
-  getFeatureState(featureId: string): FeatureAvailability | undefined {
+  getFeatureState(featureId: string) {
     const key = this.prefix + featureId;
     const value = sessionStorage.getItem(key);
-    return parseSourceValue(value);
+    
+    if (value === null) {
+      return undefined;
+    }
+    
+    try {
+      return JSON.parse(value);
+    } catch (error) {
+      console.error(`Failed to parse feature state for ${featureId}:`, error);
+      return value;
+    }
   }
 } 

@@ -10,6 +10,31 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js",
       "default": "./dist/index.js"
+    },
+    "./sources/local-storage": {
+      "types": "./dist/sources/local-storage.d.ts",
+      "import": "./dist/sources/local-storage.js",
+      "default": "./dist/sources/local-storage.js"
+    },
+    "./sources/session-storage": {
+      "types": "./dist/sources/session-storage.d.ts",
+      "import": "./dist/sources/session-storage.js",
+      "default": "./dist/sources/session-storage.js"
+    },
+    "./sources/url-params": {
+      "types": "./dist/sources/url-params.d.ts",
+      "import": "./dist/sources/url-params.js",
+      "default": "./dist/sources/url-params.js"
+    },
+    "./sources/async": {
+      "types": "./dist/sources/async.d.ts",
+      "import": "./dist/sources/async.js",
+      "default": "./dist/sources/async.js"
+    },
+    "./core": {
+      "types": "./dist/core.d.ts",
+      "import": "./dist/core.js",
+      "default": "./dist/core.js"
     }
   },
   "sideEffects": false,
