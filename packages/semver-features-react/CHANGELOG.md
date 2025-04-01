@@ -1,10 +1,21 @@
 # semver-features-react
 
+## 3.0.0
+
+### Minor Changes
+
+- 6cd4efb: Improve documentation, tree-shaking
+
+### Patch Changes
+
+- Updated dependencies [6cd4efb]
+  - semver-features@3.0.0
+
 ## 2.0.0
 
 ### Major Changes
 
-- 62634d4: 
+- 62634d4:
 
   # Breaking Changes
 

@@ -1,5 +1,13 @@
 # docs
 
+## 0.1.3
+
+### Patch Changes
+
+- Updated dependencies [6cd4efb]
+  - semver-features@3.0.0
+  - semver-features-react@3.0.0
+
 ## 0.1.2
 
 ### Patch Changes

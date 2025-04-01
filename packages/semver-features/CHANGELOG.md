@@ -1,10 +1,17 @@
 # semver-features
 
+## 3.0.0
+
+### Minor Changes
+
+- 6cd4efb: Improve documentation, tree-shaking
+
 ## 2.0.0
 
 ### Major Changes
 
-- 0974485: 
+- 0974485:
+
   # Features
 
   - **External Feature Sources**: Added support for multiple feature state sources
