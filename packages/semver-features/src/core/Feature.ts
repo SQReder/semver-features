@@ -2,15 +2,14 @@
  * Feature entity implementation
  */
 
-import * as semver from "semver";
+import { Range, SemVer } from "semver";
 import type { FeatureStateSource } from "../sources/types";
 import type {
   ExecuteOptions,
   FeatureOptions,
   FoldOptions,
   MapOptions,
-  SelectOptions,
-  Semver,
+  SelectOptions
 } from "../utils/types";
 
 /**
@@ -57,8 +56,8 @@ export class FeatureValue<E, D> {
  */
 export class Feature {
   private name: string;
-  private minVersion: Semver | boolean;
-  private currentVersion: string;
+  private versionsRange: Range | boolean;
+  private currentVersion: SemVer;
   private _isEnabled: boolean;
   private sources: FeatureStateSource[];
 
@@ -69,7 +68,7 @@ export class Feature {
   constructor(options: FeatureOptions) {
     this.name = options.name;
     this.currentVersion = options.currentVersion;
-    this.minVersion = options.minVersion;
+    this.versionsRange = options.versionsRange;
     this.sources = options.sources || [];
 
     // Check sources first, then fall back to version comparison
@@ -81,7 +80,7 @@ export class Feature {
    */
   private determineEnabledState(): boolean {
     // Find first defined state from sources or fall back to minVersion
-    let effectiveState: boolean | string = this.minVersion;
+    let effectiveState = this.versionsRange;
 
     for (const source of this.sources) {
       const state = source.getFeatureState(this.name);
@@ -92,9 +91,13 @@ export class Feature {
     }
 
     // Determine final state once
-    return typeof effectiveState === "boolean"
-      ? effectiveState
-      : semver.gte(this.currentVersion, effectiveState);
+    if (typeof effectiveState === "boolean") {
+      return effectiveState;
+    } else if (effectiveState instanceof Range) {
+      return effectiveState.test(this.currentVersion);
+    } else {
+      throw new Error("Invalid feature state");
+    }
   }
 
   /**
@@ -107,8 +110,8 @@ export class Feature {
   /**
    * The required minimum version for this feature
    */
-  get requiredVersion(): Semver | boolean {
-    return this.minVersion;
+  get requiredVersion(): Range | boolean {
+    return this.versionsRange;
   }
 
   /**

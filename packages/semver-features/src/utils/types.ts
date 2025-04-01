@@ -2,6 +2,7 @@
  * Type definitions for the SemVer-based feature toggle library
  */
 
+import { Range, SemVer } from 'semver';
 import type { FeatureStateSource } from '../sources/types';
 
 // We'll make ReactNode optional and provide a fallback type
@@ -39,15 +40,16 @@ export interface FeatureOptions {
   name: string;
   
   /**
-   * Minimum semver version required for this feature
+   * The semver range expression or boolean value that determines if the feature is enabled
+   * Can be a semver range expression (e.g. '>1.0.0', '1.x', etc.)
    * Can also be a boolean to explicitly enable/disable
    */
-  minVersion: Semver | boolean;
+  versionsRange: Range | boolean;
   
   /**
    * Current application version
    */
-  currentVersion: string;
+  currentVersion: SemVer;
 
   /**
    * Optional array of feature state sources

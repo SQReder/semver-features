@@ -1,6 +1,8 @@
 import { describe, it, expect, vi } from 'vitest';
 import { Feature, FeatureValue } from './Feature';
-import type { FeatureStateSource } from "../sources/types";
+import type { FeatureStateSource, FeatureAvailability } from "../sources/types";
+import { SemVer, Range } from 'semver';
+import { asRange } from '../utils/asRange';
 
 describe('Feature', () => {
   /**
@@ -11,8 +13,9 @@ describe('Feature', () => {
       // Arrange
       const featureConfig = {
         name: 'test-feature',
-        currentVersion: '1.0.0',
-        minVersion: '1.0.0' as const
+        currentVersion: new SemVer('1.0.0'),
+        versionsRange: asRange('1.0.0'),
+        sources: []
       };
       
       // Act
@@ -26,8 +29,9 @@ describe('Feature', () => {
       // Arrange
       const config = {
         name: 'test-feature',
-        currentVersion: '1.0.0',
-        minVersion: '2.0.0' as const
+        currentVersion: new SemVer('1.0.0'),
+        versionsRange: asRange('2.0.0'),
+        sources: []
       };
       
       // Act
@@ -41,8 +45,9 @@ describe('Feature', () => {
       // Arrange
       const config = {
         name: 'test-feature',
-        currentVersion: '2.1.0',
-        minVersion: '2.0.0' as const
+        currentVersion: new SemVer('2.1.0'),
+        versionsRange: asRange('2.0.0'),
+        sources: []
       };
       
       // Act
@@ -52,12 +57,13 @@ describe('Feature', () => {
       expect(feature.isEnabled).toBe(true);
     });
 
-    it('should enable feature when minVersion is true', () => {
+    it('should enable feature when versionsRange is true', () => {
       // Arrange
       const config = {
         name: 'test-feature',
-        currentVersion: '1.0.0',
-        minVersion: true
+        currentVersion: new SemVer('1.0.0'),
+        versionsRange: true,
+        sources: []
       };
       
       // Act
@@ -67,12 +73,13 @@ describe('Feature', () => {
       expect(feature.isEnabled).toBe(true);
     });
 
-    it('should disable feature when minVersion is false', () => {
+    it('should disable feature when versionsRange is false', () => {
       // Arrange
       const config = {
         name: 'test-feature',
-        currentVersion: '1.0.0',
-        minVersion: false
+        currentVersion: new SemVer('1.0.0'),
+        versionsRange: false,
+        sources: []
       };
       
       // Act
@@ -86,8 +93,8 @@ describe('Feature', () => {
       // Arrange
       const config = {
         name: 'test-feature',
-        currentVersion: '1.0.0',
-        minVersion: '1.0.0' as const,
+        currentVersion: new SemVer('1.0.0'),
+        versionsRange: asRange('1.0.0'),
         sources: []
       };
       
@@ -102,8 +109,8 @@ describe('Feature', () => {
       // Arrange
       const config = {
         name: 'test-feature',
-        currentVersion: '1.0.0',
-        minVersion: '1.0.0' as const,
+        currentVersion: new SemVer('1.0.0'),
+        versionsRange: asRange('1.0.0'),
         sources: undefined
       };
       
@@ -118,15 +125,16 @@ describe('Feature', () => {
       // Arrange
       const featureConfig = {
         name: 'test-feature',
-        currentVersion: '1.0.0',
-        minVersion: '1.0.0' as const
+        currentVersion: new SemVer('1.0.0'),
+        versionsRange: asRange('1.0.0'),
+        sources: []
       };
       
       // Act
       const feature = new Feature(featureConfig);
       
       // Assert
-      expect(feature.requiredVersion).toBe('1.0.0');
+      expect((feature.requiredVersion as Range).format()).toBe('>=1.0.0');
     });
   });
 
@@ -138,8 +146,9 @@ describe('Feature', () => {
       // Arrange
       const invalidConfig = {
         name: 'test',
-        currentVersion: 'invalid',
-        minVersion: '1.0.0' as const
+        currentVersion: new SemVer('1.0.0'),
+        versionsRange: 'invalid-version' as any,
+        sources: []
       };
       
       // Act & Assert
@@ -150,8 +159,9 @@ describe('Feature', () => {
       // Arrange
       const validConfig = {
         name: 'test',
-        currentVersion: '1.0.0',
-        minVersion: '1.0.0' as const
+        currentVersion: new SemVer('1.0.0'),
+        versionsRange: asRange('1.0.0'),
+        sources: []
       };
       
       // Act & Assert
@@ -166,13 +176,14 @@ describe('Feature', () => {
     it('should prioritize source state over version comparison when source enables feature', () => {
       // Arrange
       const mockSource: FeatureStateSource = {
-        getFeatureState: (name: string) => name === 'test-feature' ? true : undefined
+        getFeatureState: (name: string): FeatureAvailability | undefined => 
+          name === 'test-feature' ? true : undefined
       };
       
       const config = {
         name: 'test-feature',
-        currentVersion: '1.0.0',
-        minVersion: '2.0.0' as const,
+        currentVersion: new SemVer('1.0.0'),
+        versionsRange: asRange('2.0.0'),
         sources: [mockSource]
       };
       
@@ -186,13 +197,14 @@ describe('Feature', () => {
     it('should prioritize source state over version comparison when source disables feature', () => {
       // Arrange
       const mockSource: FeatureStateSource = {
-        getFeatureState: (name: string) => name === 'test-feature' ? false : undefined
+        getFeatureState: (name: string): FeatureAvailability | undefined => 
+          name === 'test-feature' ? false : undefined
       };
       
       const config = {
         name: 'test-feature',
-        currentVersion: '2.0.0',
-        minVersion: '1.0.0' as const,
+        currentVersion: new SemVer('2.0.0'),
+        versionsRange: asRange('1.0.0'),
         sources: [mockSource]
       };
       
@@ -210,13 +222,14 @@ describe('Feature', () => {
       };
       
       const secondSource: FeatureStateSource = {
-        getFeatureState: (name: string) => name === 'test-feature' ? true : undefined
+        getFeatureState: (name: string): FeatureAvailability | undefined => 
+          name === 'test-feature' ? true : undefined
       };
       
       const config = {
         name: 'test-feature',
-        currentVersion: '1.0.0',
-        minVersion: '2.0.0' as const,
+        currentVersion: new SemVer('1.0.0'),
+        versionsRange: asRange('2.0.0'),
         sources: [firstSource, secondSource]
       };
       
@@ -235,8 +248,8 @@ describe('Feature', () => {
       
       const config = {
         name: 'test-feature',
-        currentVersion: '2.0.0',
-        minVersion: '1.0.0' as const,
+        currentVersion: new SemVer('2.0.0'),
+        versionsRange: asRange('1.0.0'),
         sources: [mockSource]
       };
       
@@ -250,13 +263,14 @@ describe('Feature', () => {
     it('should enable feature when source returns a version string lower than current version', () => {
       // Arrange
       const mockSource: FeatureStateSource = {
-        getFeatureState: (name: string) => name === 'test-feature' ? '1.5.0' : undefined
+        getFeatureState: (name: string): FeatureAvailability | undefined => 
+          name === 'test-feature' ? asRange('1.5.0') : undefined
       };
       
       const config = {
         name: 'test-feature',
-        currentVersion: '2.0.0',
-        minVersion: '1.0.0' as const,
+        currentVersion: new SemVer('2.0.0'),
+        versionsRange: asRange('1.0.0'),
         sources: [mockSource]
       };
       
@@ -270,13 +284,14 @@ describe('Feature', () => {
     it('should disable feature when source returns a version string higher than current version', () => {
       // Arrange
       const mockSource: FeatureStateSource = {
-        getFeatureState: (name: string) => name === 'test-feature' ? '3.0.0' : undefined
+        getFeatureState: (name: string): FeatureAvailability | undefined => 
+          name === 'test-feature' ? asRange('3.0.0') : undefined
       };
       
       const config = {
         name: 'test-feature',
-        currentVersion: '2.0.0',
-        minVersion: '1.0.0' as const,
+        currentVersion: new SemVer('2.0.0'),
+        versionsRange: asRange('1.0.0'),
         sources: [mockSource]
       };
       
@@ -296,8 +311,9 @@ describe('Feature', () => {
       // Arrange
       const feature = new Feature({
         name: 'test-feature',
-        currentVersion: '1.0.0',
-        minVersion: true
+        currentVersion: new SemVer('1.0.0'),
+        versionsRange: true,
+        sources: []
       });
       
       // Act
@@ -314,8 +330,9 @@ describe('Feature', () => {
       // Arrange
       const feature = new Feature({
         name: 'test-feature',
-        currentVersion: '1.0.0',
-        minVersion: false
+        currentVersion: new SemVer('1.0.0'),
+        versionsRange: false,
+        sources: []
       });
       
       // Act
@@ -332,8 +349,9 @@ describe('Feature', () => {
       // Arrange
       const feature = new Feature({
         name: 'test-feature',
-        currentVersion: '1.0.0',
-        minVersion: true
+        currentVersion: new SemVer('1.0.0'),
+        versionsRange: true,
+        sources: []
       });
       
       const enabledObject = { key: 'enabled', value: 42, nested: { flag: true } };
@@ -353,8 +371,9 @@ describe('Feature', () => {
       // Arrange
       const feature = new Feature({
         name: 'test-feature',
-        currentVersion: '1.0.0',
-        minVersion: false
+        currentVersion: new SemVer('1.0.0'),
+        versionsRange: false,
+        sources: []
       });
       
       const enabledObject = { key: 'enabled', value: 42, nested: { flag: true } };
@@ -379,8 +398,9 @@ describe('Feature', () => {
       // Arrange
       const feature = new Feature({
         name: 'test-feature',
-        currentVersion: '1.0.0',
-        minVersion: true
+        currentVersion: new SemVer('1.0.0'),
+        versionsRange: true,
+        sources: []
       });
       
       // Act
@@ -399,8 +419,9 @@ describe('Feature', () => {
       // Arrange
       const feature = new Feature({
         name: 'test-feature',
-        currentVersion: '1.0.0',
-        minVersion: false
+        currentVersion: new SemVer('1.0.0'),
+        versionsRange: false,
+        sources: []
       });
       
       // Act
@@ -419,8 +440,9 @@ describe('Feature', () => {
       // Arrange
       const feature = new Feature({
         name: 'test-feature',
-        currentVersion: '1.0.0',
-        minVersion: true
+        currentVersion: new SemVer('1.0.0'),
+        versionsRange: true,
+        sources: []
       });
       
       // Act
@@ -439,8 +461,9 @@ describe('Feature', () => {
       // Arrange
       const feature = new Feature({
         name: 'test-feature',
-        currentVersion: '1.0.0',
-        minVersion: false
+        currentVersion: new SemVer('1.0.0'),
+        versionsRange: false,
+        sources: []
       });
       
       // Act
@@ -459,8 +482,9 @@ describe('Feature', () => {
       // Arrange
       const feature = new Feature({
         name: 'test-feature',
-        currentVersion: '1.0.0',
-        minVersion: true
+        currentVersion: new SemVer('1.0.0'),
+        versionsRange: true,
+        sources: []
       });
       
       // Act
@@ -487,8 +511,9 @@ describe('Feature', () => {
       // Arrange
       const feature = new Feature({
         name: 'test-feature',
-        currentVersion: '1.0.0',
-        minVersion: true
+        currentVersion: new SemVer('1.0.0'),
+        versionsRange: true,
+        sources: []
       });
       
       // Act
@@ -507,8 +532,9 @@ describe('Feature', () => {
       // Arrange
       const feature = new Feature({
         name: 'test-feature',
-        currentVersion: '1.0.0',
-        minVersion: false
+        currentVersion: new SemVer('1.0.0'),
+        versionsRange: false,
+        sources: []
       });
       
       // Act
@@ -527,8 +553,9 @@ describe('Feature', () => {
       // Arrange
       const feature = new Feature({
         name: 'test-feature',
-        currentVersion: '1.0.0',
-        minVersion: true
+        currentVersion: new SemVer('1.0.0'),
+        versionsRange: true,
+        sources: []
       });
       
       // Act
@@ -550,8 +577,9 @@ describe('Feature', () => {
       // Arrange
       const feature = new Feature({
         name: 'test-feature',
-        currentVersion: '1.0.0',
-        minVersion: false
+        currentVersion: new SemVer('1.0.0'),
+        versionsRange: false,
+        sources: []
       });
       
       // Act
@@ -578,8 +606,9 @@ describe('Feature', () => {
       // Arrange
       const feature = new Feature({
         name: 'test-feature',
-        currentVersion: '1.0.0',
-        minVersion: true
+        currentVersion: new SemVer('1.0.0'),
+        versionsRange: true,
+        sources: []
       });
       
       // Act
@@ -596,8 +625,9 @@ describe('Feature', () => {
       // Arrange
       const feature = new Feature({
         name: 'test-feature',
-        currentVersion: '1.0.0',
-        minVersion: false
+        currentVersion: new SemVer('1.0.0'),
+        versionsRange: false,
+        sources: []
       });
       
       // Act
@@ -614,8 +644,9 @@ describe('Feature', () => {
       // Arrange
       const feature = new Feature({
         name: 'enabled-feature',
-        currentVersion: '2.0.0',
-        minVersion: '1.0.0'
+        currentVersion: new SemVer('2.0.0'),
+        versionsRange: asRange('1.0.0'),
+        sources: []
       });
       const callback = vi.fn().mockReturnValue('callback result');
       
@@ -630,8 +661,9 @@ describe('Feature', () => {
       // Arrange
       const feature = new Feature({
         name: 'disabled-feature',
-        currentVersion: '1.0.0',
-        minVersion: '2.0.0'
+        currentVersion: new SemVer('1.0.0'),
+        versionsRange: asRange('2.0.0'),
+        sources: []
       });
       const callback = vi.fn().mockReturnValue('callback result');
       
@@ -646,8 +678,9 @@ describe('Feature', () => {
       // Arrange
       const feature = new Feature({
         name: 'test-feature',
-        currentVersion: '1.0.0',
-        minVersion: true
+        currentVersion: new SemVer('1.0.0'),
+        versionsRange: true,
+        sources: []
       });
       
       // Act
@@ -661,8 +694,9 @@ describe('Feature', () => {
       // Arrange
       const feature = new Feature({
         name: 'test-feature',
-        currentVersion: '1.0.0',
-        minVersion: false
+        currentVersion: new SemVer('1.0.0'),
+        versionsRange: false,
+        sources: []
       });
       
       // Act

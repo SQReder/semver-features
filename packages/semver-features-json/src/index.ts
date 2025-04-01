@@ -1,15 +1,20 @@
-import { SemverFeatures, Feature } from 'semver-features';
-import { SemverFeaturesOptions } from 'semver-features';
-import { FeatureFlagsConfig, ExtractFeatureNames, JsonSemverFeaturesOptions } from './types';
-import { validateAndAssertConfig } from './validator';
-import schema from './schema';
+import {
+  Feature,
+  SemverFeatures,
+  SemverFeaturesOptions,
+} from "semver-features";
+import schema from "./schema";
+import { ExtractFeatureNames, FeatureFlagsConfig } from "./types";
+import { validateAndAssertConfig } from "./validator";
 
 /**
  * SemverFeatures class extended with strongly typed feature access
  */
-export class JsonSemverFeatures<T extends FeatureFlagsConfig> extends SemverFeatures {
+export class JsonSemverFeatures<
+  const T extends FeatureFlagsConfig
+> extends SemverFeatures {
   private featureConfig: T;
-  private featureNameMap: Map<string, Feature<unknown, unknown>>;
+  private featureNameMap: Map<string, Feature>;
 
   /**
    * Create a new instance of JsonSemverFeatures
@@ -28,20 +33,15 @@ export class JsonSemverFeatures<T extends FeatureFlagsConfig> extends SemverFeat
    */
   private registerFeaturesFromConfig(): void {
     for (const featureConfig of this.featureConfig.features) {
-      // Register feature using the versionRange or enabledByDefault
-      const featureEnabled = featureConfig.enabledByDefault ?? false;
-      
       // If versionRange is provided, use it as a semver string
       // otherwise use the enabledByDefault value as a boolean
-      const versionOrBoolean = featureConfig.versionRange 
-        ? featureConfig.versionRange  // This is a Semver string
-        : featureEnabled;             // This is a boolean fallback
-        
-      const feature = super.register<unknown, unknown>(
-        featureConfig.name, 
+      const versionOrBoolean = featureConfig.versionRange;
+
+      const feature = super.register(
+        featureConfig.name,
         versionOrBoolean as any
       );
-      
+
       this.featureNameMap.set(featureConfig.name, feature);
     }
   }
@@ -51,7 +51,7 @@ export class JsonSemverFeatures<T extends FeatureFlagsConfig> extends SemverFeat
    * @param name The name of the feature
    * @returns The Feature instance or undefined if not found
    */
-  get<K extends ExtractFeatureNames<T>>(name: K): Feature<unknown, unknown> | undefined {
+  get<K extends ExtractFeatureNames<T>>(name: K): Feature | undefined {
     return this.featureNameMap.get(name);
   }
 
@@ -69,8 +69,8 @@ export class JsonSemverFeatures<T extends FeatureFlagsConfig> extends SemverFeat
    * Get all registered features from the configuration
    * @returns Map of feature names to Feature instances
    */
-  getAllFeatures(): Map<ExtractFeatureNames<T>, Feature<unknown, unknown>> {
-    return this.featureNameMap as Map<ExtractFeatureNames<T>, Feature<unknown, unknown>>;
+  getAllFeatures(): Map<ExtractFeatureNames<T>, Feature> {
+    return this.featureNameMap as Map<ExtractFeatureNames<T>, Feature>;
   }
 }
 
@@ -89,19 +89,19 @@ export function getSchema() {
  * @returns A new JsonSemverFeatures instance
  */
 export function createSemverFeaturesJson<T extends object>(
-  config: T, 
+  config: T,
   options: SemverFeaturesOptions
 ): JsonSemverFeatures<T & FeatureFlagsConfig> {
   // Validate the configuration
   const validatedConfig = validateAndAssertConfig(config);
-  
+
   // Create the instance with the validated config
   return new JsonSemverFeatures<T & FeatureFlagsConfig>(
-    config as T & FeatureFlagsConfig, 
+    config as T & FeatureFlagsConfig,
     options
   );
 }
 
 // Re-export types
-export * from './types';
-export { validateFeatureConfig, validateAndAssertConfig } from './validator';
+export * from "./types";
+export { validateAndAssertConfig, validateFeatureConfig } from "./validator";

@@ -1,41 +1,64 @@
 {
   "name": "semver-features-json",
-  "version": "0.1.0",
-  "description": "JSON-based feature toggling with SemVer and TypeScript type safety",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "version": "0.0.0",
+  "description": "SemVer-Based Feature Toggle Library - JSON Schema Package",
+  "type": "module",
+  "private": true,
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    }
+  },
+  "sideEffects": false,
   "files": [
-    "dist",
-    "src",
-    "README.md",
-    "LICENSE"
+    "dist"
   ],
+  "bin": {
+    "semver-features-json": "./dist/cli.js"
+  },
   "scripts": {
-    "build": "tsc",
+    "build": "tsup",
     "test": "vitest run",
-    "lint": "eslint src --ext .ts",
-    "prepublishOnly": "npm run build"
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "lint": "eslint src --ext .ts,.tsx",
+    "lint:package": "publint .",
+    "lint:attw": "attw --pack . --profile esm-only",
+    "prepublishOnly": "npm run build && npm run lint:package && npm run lint:attw"
   },
   "keywords": [
-    "feature-toggle",
     "semver",
-    "json",
-    "typescript",
-    "feature-flags"
+    "feature-toggle",
+    "feature-flag",
+    "versioning"
   ],
-  "author": "",
+  "author": "SQReder <sqreder@gmail.com>",
   "license": "MIT",
-  "dependencies": {
-    "zod": "^3.22.4",
-    "semver-features": "^1.0.0"
-  },
-  "peerDependencies": {
-    "semver-features": "^1.0.0"
-  },
   "devDependencies": {
-    "@types/node": "^18.0.0",
-    "eslint": "^8.0.0",
-    "typescript": "^5.0.0",
-    "vitest": "^0.34.0"
-  }
+    "@types/semver": "^7.5.8",
+    "@typescript-eslint/eslint-plugin": "^5.57.0",
+    "@typescript-eslint/parser": "^5.57.0",
+    "eslint": "^8.37.0",
+    "typescript": "^5.0.3",
+    "tsup": "^6.0.0",
+    "@repo/typescript-config": "*",
+    "@repo/tsup-config": "*"
+  },
+  "dependencies": {
+    "semver": "^7.7.1",
+    "zod": "^3.23.8",
+    "semver-features": "*"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/SQReder/semver-features.git"
+  },
+  "bugs": {
+    "url": "https://github.com/SQReder/semver-features/issues"
+  },
+  "homepage": "https://github.com/SQReder/semver-features"
 }

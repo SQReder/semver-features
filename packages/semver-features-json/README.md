@@ -2,6 +2,13 @@
 
 A strongly-typed extension for the [semver-features](https://github.com/SQReder/semver-features) library that enables feature toggling based on JSON configuration files.
 
+[![npm version](https://img.shields.io/npm/v/semver-features-json.svg)](https://www.npmjs.com/package/semver-features-json)
+[![license](https://img.shields.io/npm/l/semver-features-json.svg)](./LICENSE)
+
+## Overview
+
+`semver-features-json` provides a type-safe way to define and manage feature flags using JSON configuration files. It extends the core `semver-features` library by automatically registering features from your JSON config and providing strong TypeScript type inference for feature names.
+
 ## Installation
 
 ```bash
@@ -89,6 +96,8 @@ if (newUI) {
 
 ### Value Selection and Transformation
 
+The library inherits all the powerful transformation capabilities from the core `semver-features` library:
+
 ```typescript
 const newUI = features.get('newUI');
 
@@ -117,7 +126,7 @@ if (newUI) {
 The library uses Zod for schema validation, providing robust runtime type checking. You can access the schema directly:
 
 ```typescript
-import { getSchema } from 'semver-features-json';
+import { getSchema, validateFeatureConfig } from 'semver-features-json';
 
 // Get the Zod schema
 const featureSchema = getSchema();
@@ -125,10 +134,11 @@ const featureSchema = getSchema();
 // Use it for validation or type inference
 const isValid = featureSchema.safeParse(someConfig).success;
 
-// You can also extend the schema
-const extendedSchema = featureSchema.extend({
-  // add your custom fields
-});
+// Validate your configuration
+const validationResult = validateFeatureConfig(myConfig);
+if (!validationResult.valid) {
+  console.error('Invalid configuration:', validationResult.errors);
+}
 ```
 
 ### Schema Reference
@@ -172,9 +182,18 @@ Extends the SemverFeatures class with strong typing based on your JSON configura
 
 Returns the Zod schema used for validation.
 
+### `validateFeatureConfig(config)`
+
+Validates a feature configuration object against the schema.
+
+**Parameters**:
+- `config`: The configuration object to validate
+
+**Returns**: A validation result with success status and any errors
+
 ## Integration with semver-features
 
-This package extends the functionality of semver-features, so all methods and properties from the base library are available. See the [semver-features documentation](https://github.com/SQReder/semver-features) for more details.
+This package extends the functionality of semver-features, so all methods and properties from the base library are available. See the [semver-features documentation](https://github.com/SQReder/semver-features) for more details on the core functionality.
 
 ## License
 

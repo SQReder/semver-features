@@ -1,21 +1,15 @@
 {
-  "name": "semver-features",
-  "version": "2.0.1",
-  "description": "SemVer-Based Feature Toggle Library - Core Package",
-  "type": "module",
-  "main": "./dist/index.js",
-  "types": "./dist/index.d.ts",
-  "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js",
-      "default": "./dist/index.js"
-    }
-  },
+  "name": "semver-features-cli",
+  "version": "0.0.0",
+  "description": "SemVer-Based Feature Toggle Library - CLI Package",
   "sideEffects": false,
+  "private": true,
   "files": [
     "dist"
   ],
+  "bin": {
+    "semver-features": "./dist/index.js"
+  },
   "scripts": {
     "build": "tsup",
     "test": "vitest run",
@@ -35,6 +29,8 @@
   "author": "SQReder <sqreder@gmail.com>",
   "license": "MIT",
   "devDependencies": {
+    "@types/fs-extra": "^11.0.4",
+    "@types/node": "^20.11.25",
     "@types/semver": "^7.5.8",
     "@typescript-eslint/eslint-plugin": "^5.57.0",
     "@typescript-eslint/parser": "^5.57.0",
@@ -45,7 +41,15 @@
     "@repo/tsup-config": "*"
   },
   "dependencies": {
-    "semver": "^7.7.1"
+    "semver-features-json": "*",
+    "enquirer": "^2.4.1",
+    "zod": "^3.22.4",
+    "commander": "^11.1.0",
+    "cosmiconfig": "^8.3.6",
+    "chalk": "^4.1.2",
+    "date-fns": "^3.3.1",
+    "fs-extra": "^11.2.0",
+    "semver": "^7.5.4"
   },
   "repository": {
     "type": "git",

@@ -166,7 +166,8 @@ const analytics = features.register('analytics', '1.3.0');
 ```typescript
 // List all registered features and their states
 features.dumpFeatures();
-// Outputs a table with feature names and their enabled states
+// Outputs an array with feature names and their enabled states:
+// [{ name: 'newUI', enabled: true }, { name: 'analytics', enabled: true }, ...]
 ```
 
 ## Versioned APIs

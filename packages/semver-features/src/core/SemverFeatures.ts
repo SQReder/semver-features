@@ -5,12 +5,14 @@
 import { Feature } from './Feature';
 import type { Semver, SemverFeaturesOptions } from '../utils/types';
 import type { FeatureStateSource } from '../sources/types';
+import { Range, SemVer } from 'semver';
+import { asRange } from '../utils/asRange';
 
 /**
  * Main class for managing semver-based feature toggles
  */
 export class SemverFeatures {
-  private version: string;
+  private version: SemVer;
   private features: Map<string, Feature>;
   private sources: FeatureStateSource[];
 
@@ -22,7 +24,7 @@ export class SemverFeatures {
     if (!options.version) {
       throw new Error('Version must be explicitly provided');
     }
-    this.version = options.version;
+    this.version = new SemVer(options.version);
     this.features = new Map();
     this.sources = options.sources || [];
 
@@ -51,7 +53,7 @@ export class SemverFeatures {
    * Get the current application version
    */
   get currentVersion(): string {
-    return this.version;
+    return this.version.format();
   }
 
   /**
@@ -63,7 +65,7 @@ export class SemverFeatures {
    */
   register(
     name: string, 
-    minVersion: Semver | boolean
+    versionsRange: string | boolean
   ): Feature {
     // Return existing feature if already registered
     if (this.features.has(name)) {
@@ -73,7 +75,7 @@ export class SemverFeatures {
     // Create new feature
     const feature = new Feature({
       name,
-      minVersion,
+      versionsRange: typeof versionsRange === 'string' ? asRange(versionsRange) : versionsRange,
       currentVersion: this.version,
       sources: this.sources
     });

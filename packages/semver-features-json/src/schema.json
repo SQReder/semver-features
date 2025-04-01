@@ -1,6 +1,7 @@
 {
     "$schema": "http://json-schema.org/draft-07/schema#",
     "title": "FeatureFlagsConfig",
+    "description": "Configuration for feature flags using semver-based version control",
     "type": "object",
     "required": ["features"],
     "properties": {
@@ -10,6 +11,7 @@
       },
       "features": {
         "type": "array",
+        "description": "Array of feature flag configurations",
         "items": {
           "type": "object",
           "required": ["name", "description", "versionRange"],
@@ -17,43 +19,25 @@
             "name": {
               "type": "string",
               "pattern": "^[a-zA-Z][a-zA-Z0-9_\\-]*$",
-              "description": "Кодовое имя фичи"
+              "description": "Unique code name of the feature, must start with a letter and contain only alphanumeric characters, underscores, or hyphens"
             },
             "description": {
-              "type": "string"
+              "type": "string",
+              "description": "Human-readable description of what the feature does"
             },
             "versionRange": {
               "type": "string",
-              "description": "Диапазон версий в формате semver"
-            },
-            "enabledByDefault": {
-              "type": "boolean",
-              "default": false
-            },
-            "tags": {
-              "type": "array",
-              "items": {
-                "type": "string"
-              },
-              "uniqueItems": true
+              "description": "Semver range expression that specifies in which versions this feature is active"
             },
             "deprecated": {
               "type": "boolean",
-              "default": false
-            },
-            "owners": {
-              "type": "array",
-              "items": {
-                "type": "string"
-              }
+              "default": false,
+              "description": "Indicates whether this feature is deprecated and scheduled for removal"
             },
             "createdAt": {
               "type": "string",
-              "format": "date-time"
-            },
-            "expiresAt": {
-              "type": "string",
-              "format": "date-time"
+              "format": "date-time",
+              "description": "ISO 8601 date-time when this feature was created"
             }
           },
           "additionalProperties": false

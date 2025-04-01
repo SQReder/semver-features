@@ -2,12 +2,12 @@
  * Feature source type definitions
  */
 
-import type { Semver } from '../utils/types';
+import type { Range, SemVer } from "semver";
 
 /**
  * Represents whether a feature is available via boolean or version requirement
  */
-export type FeatureAvailability = boolean | Semver;
+export type FeatureAvailability = boolean | Range;
 
 /**
  * Interface for feature state sources
@@ -24,4 +24,4 @@ export interface FeatureStateSource {
    * Optional initialization method
    */
   initialize?(): Promise<void> | void;
-} 
+}

@@ -1,9 +1,5 @@
-import sharedConfig from '@repo/tsup-config'
-import { defineConfig } from 'tsup';
+import sharedConfig from "@repo/tsup-config";
 
-export default defineConfig({
-  ...sharedConfig,
-  entry: ['src/index.ts'],
-  format: ['esm'],
+export default sharedConfig({
+  entry: ["src/index.ts"],
 });
- 

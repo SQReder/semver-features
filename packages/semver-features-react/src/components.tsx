@@ -13,7 +13,7 @@ interface FeatureToggleProps {
   /**
    * Feature entity to check
    */
-  feature: Feature<any, any>;
+  feature: Feature;
   
   /**
    * Content to render when feature is enabled
@@ -44,7 +44,7 @@ interface FeatureEnabledProps {
   /**
    * Feature entity to check
    */
-  feature: Feature<any, any>;
+  feature: Feature;
   
   /**
    * Content to render when feature is enabled
@@ -68,7 +68,7 @@ interface FeatureDisabledProps {
   /**
    * Feature entity to check
    */
-  feature: Feature<any, any>;
+  feature: Feature;
   
   /**
    * Content to render when feature is disabled
