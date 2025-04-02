@@ -3,7 +3,6 @@
   "version": "1.0.0",
   "description": "SemVer-Based Feature Toggle Library - JSON Schema Package",
   "type": "module",
-  "private": true,
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
@@ -17,9 +16,6 @@
   "files": [
     "dist"
   ],
-  "bin": {
-    "semver-features-json": "./dist/cli.js"
-  },
   "scripts": {
     "build": "tsup",
     "test": "vitest run",
