@@ -10,105 +10,103 @@ describe('validateFeatureConfig', () => {
         name: 'validFeature',
         description: 'A valid feature',
         versionRange: '>=1.0.0',
-        enabledByDefault: true,
         deprecated: false
       }
     ]
   };
 
+  // Test case: Should return valid result for valid configuration
   it('should return valid result for valid configuration', () => {
-    // Arrange - use the valid config
-
     // Act
     const result = validateFeatureConfig(validConfig);
-
+    
     // Assert
     expect(result.valid).toBe(true);
+  });
+  
+  it('should return empty errors array for valid configuration', () => {
+    // Act
+    const result = validateFeatureConfig(validConfig);
+    
+    // Assert
     expect(result.errors).toEqual([]);
   });
-
-  it('should return invalid result with errors for missing required fields', () => {
+  
+  // Test case: Should validate feature name format (must start with a letter)
+  it('should validate feature name format (must start with a letter)', () => {
     // Arrange
     const invalidConfig = {
-      features: [
-        {
-          // Missing required 'name' field
-          description: 'An invalid feature',
-          versionRange: '>=1.0.0'
-        }
-      ]
+      features: [{ 
+        name: '123-invalid-name', 
+        description: 'Feature with invalid name', 
+        versionRange: '>=1.0.0' 
+      }]
     };
-
+    
     // Act
     const result = validateFeatureConfig(invalidConfig);
-
+    
     // Assert
     expect(result.valid).toBe(false);
     expect(result.errors.length).toBeGreaterThan(0);
-    // We can't know the exact error message but we can check it contains useful info
-    expect(result.errors[0].message).toBeTruthy();
   });
-
-  it('should return invalid result with errors for invalid feature name format', () => {
+  
+  // Test case: Should validate semver range format
+  it('should validate semver range format', () => {
     // Arrange
     const invalidConfig = {
-      features: [
-        {
-          name: '123-invalid-name', // Invalid: must start with a letter
-          description: 'Feature with invalid name',
-          versionRange: '>=1.0.0'
-        }
-      ]
+      features: [{ 
+        name: 'validFeature', 
+        description: 'Feature with invalid version range', 
+        versionRange: 'not-a-semver-range' 
+      }]
     };
-
+    
     // Act
     const result = validateFeatureConfig(invalidConfig);
-
+    
     // Assert
     expect(result.valid).toBe(false);
     expect(result.errors.length).toBeGreaterThan(0);
   });
-
-  it('should return invalid result with errors for invalid semver range', () => {
+  
+  // Test case: Should require all mandatory fields
+  it('should require all mandatory fields', () => {
     // Arrange
     const invalidConfig = {
-      features: [
-        {
-          name: 'validFeature',
-          description: 'Feature with invalid version range',
-          versionRange: 'not-a-semver-range'
-        }
-      ]
+      features: [{ 
+        // Missing name field
+        description: 'An invalid feature', 
+        versionRange: '>=1.0.0' 
+      }]
     };
-
+    
     // Act
     const result = validateFeatureConfig(invalidConfig);
-
+    
     // Assert
     expect(result.valid).toBe(false);
     expect(result.errors.length).toBeGreaterThan(0);
   });
-
-  it('should return invalid result for non-object input', () => {
-    // Arrange
-    const invalidInput = 'not an object';
-
+  
+  // Test case: Should handle non-object inputs gracefully
+  it('should handle non-object inputs gracefully', () => {
     // Act
-    const result = validateFeatureConfig(invalidInput);
-
+    const result = validateFeatureConfig('not an object');
+    
     // Assert
     expect(result.valid).toBe(false);
     expect(result.errors.length).toBeGreaterThan(0);
   });
-
-  it('should handle unexpected errors gracefully', () => {
-    // Arrange
-    // Create a value that will cause an unexpected error
-    const problematicInput = undefined;
-
+  
+  // Test case: Should handle unexpected errors (null/undefined inputs)
+  it.each([
+    ['null input', null],
+    ['undefined input', undefined]
+  ])('should handle unexpected errors (%s)', (_, problematicInput) => {
     // Act
     const result = validateFeatureConfig(problematicInput);
-
+    
     // Assert
     expect(result.valid).toBe(false);
     expect(result.errors.length).toBeGreaterThan(0);
@@ -123,46 +121,40 @@ describe('validateAndAssertConfig', () => {
         name: 'validFeature',
         description: 'A valid feature',
         versionRange: '>=1.0.0',
-        enabledByDefault: true,
         deprecated: false
       }
     ]
   };
 
+  // Test case: Should return typed configuration for valid input
   it('should return typed configuration for valid input', () => {
-    // Arrange - use the valid config
-
     // Act
     const result = validateAndAssertConfig(validConfig);
-
+    
     // Assert
     expect(result).toEqual(validConfig);
   });
 
-  it('should throw error with details for invalid input', () => {
+  // Test case: Should throw descriptive error for invalid input
+  it('should throw descriptive error for invalid input', () => {
     // Arrange
     const invalidConfig = {
-      features: [
-        {
-          // Missing required 'name' field
-          description: 'An invalid feature',
-          versionRange: '>=1.0.0'
-        }
-      ]
+      features: [{ 
+        description: 'An invalid feature', 
+        versionRange: '>=1.0.0' 
+      }]
     };
-
+    
     // Act & Assert
     expect(() => validateAndAssertConfig(invalidConfig)).toThrow(
       'Feature configuration validation failed:'
     );
   });
-
+  
+  // Test case: Should handle unexpected errors by throwing
   it('should handle unexpected errors by throwing', () => {
-    // Arrange
-    const problematicInput = null;
-
     // Act & Assert
-    expect(() => validateAndAssertConfig(problematicInput)).toThrow(
+    expect(() => validateAndAssertConfig(null)).toThrow(
       'Feature configuration validation failed:'
     );
   });

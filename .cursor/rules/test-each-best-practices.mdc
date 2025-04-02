@@ -1,0 +1,286 @@
+---
+description: 
+globs: *.test.ts,*.test.tsx
+alwaysApply: false
+---
+# Test Each Best Practices
+
+Enforces best practices for using `it.each` in test cases to improve test organization, readability, and maintainability.
+
+<rule>
+name: test_each_best_practices
+description: Enforces best practices for using it.each in test cases
+
+filters: 
+  # Match test files
+  - type: file_path
+    pattern: "\\.(test|spec)\\.(ts|tsx|js|jsx)$"
+  
+  # Match file creation or modification events
+  - type: event
+    pattern: "file_create|file_modify"
+
+actions:
+  - type: suggest
+    message: |
+      ## Test Each Best Practices
+
+      ### 1. Split Test Cases by Outcome
+      
+      ❌ **AVOID** mixing passing and failing cases:
+      ```typescript
+      it.each([
+        ['pass', 'valid-email@example.com', true],
+        ['pass', 'another-valid@email.com', true],
+        ['fail', 'invalid-email', false],
+        ['fail', '@missing-username.com', false]
+      ])('should %s when validating "%s"', (_, input, shouldBeValid) => {
+        const result = validateEmail(input);
+        expect(result).toBe(shouldBeValid);
+      });
+      ```
+      
+      ✅ **BETTER** - Separate passing and failing cases:
+      ```typescript
+      it.each([
+        ['standard format', 'user@example.com'],
+        ['with subdomain', 'user@sub.example.com'],
+        ['with numbers', 'user123@example.com'],
+        ['with special chars', 'user.name+tag@example.com'],
+        ['with hyphen', 'user-name@example.com']
+      ])('should accept valid email: %s "%s"', (_, email) => {
+        const result = validateEmail(email);
+        expect(result).toBe(true);
+      });
+
+      it.each([
+        ['missing @', 'useremail.com'],
+        ['missing domain', 'user@'],
+        ['missing username', '@example.com'],
+        ['invalid chars', 'user name@example.com'],
+        ['consecutive dots', 'user@example..com']
+      ])('should reject invalid email: %s "%s"', (_, email) => {
+        const result = validateEmail(email);
+        expect(result).toBe(false);
+      });
+      ```
+
+      ### 2. Use Short Descriptions for Test Cases
+      
+      ❌ **AVOID** letting Vitest serialize the entire test case object:
+      ```typescript
+      it.each([
+        {
+          description: 'missing required field',
+          input: { username: 'test' },
+          shouldPass: false
+        }
+      ])('should handle %s', ({ input, shouldPass }) => {
+        expect(validateUser(input)).toBe(shouldPass);
+      });
+      ```
+      
+      ✅ **BETTER** - Use a short description as the first element:
+      ```typescript
+      it.each([
+        ['missing email', { username: 'test', password: 'secret' }],
+        ['missing username', { email: 'test@example.com', password: 'secret' }],
+        ['missing password', { username: 'test', email: 'test@example.com' }]
+      ])('should reject user with %s', (_, userData) => {
+        const result = validateUser(userData);
+        expect(result).toBe(false);
+      });
+      ```
+
+      ### 3. Use Descriptive Test Data
+      
+      ❌ **AVOID** using generic test data:
+      ```typescript
+      it.each([
+        ['test1', 'value1'],
+        ['test2', 'value2']
+      ])('should handle %s', (name, value) => {
+        expect(processData(name, value)).toBeDefined();
+      });
+      ```
+      
+      ✅ **BETTER** - Use meaningful test data:
+      ```typescript
+      it.each([
+        ['shipping address', '123 Main St', 'New York', 'NY'],
+        ['billing address', '456 Market St', 'San Francisco', 'CA']
+      ])('should format %s: %s, %s, %s', (_, street, city, state) => {
+        const formatted = formatAddress(street, city, state);
+        expect(formatted).toMatch(/^\d+ [A-Za-z]+ St, [A-Za-z ]+, [A-Z]{2}$/);
+      });
+      ```
+
+      ### 4. Provide Descriptive Labels for Data Structures
+      
+      ❌ **AVOID** complex data without descriptions:
+      ```typescript
+      it.each([
+        [{ type: 'product', data: { name: 'Chair', price: 99.99 }, expected: true }],
+        [{ type: 'service', data: { name: 'Delivery', price: 15.00 }, expected: false }]
+      ])('should validate %s', (testCase) => {
+        expect(validateItem(testCase.type, testCase.data)).toBe(testCase.expected);
+      });
+      ```
+      
+      ✅ **APPROACH 1** - Use simple data with descriptive parameters:
+      ```typescript
+      it.each([
+        ['product item', 'product', 'Chair', 99.99],
+        ['service item', 'service', 'Delivery', 15.00]
+      ])('should validate %s: type=%s name=%s price=$%s', (_, type, name, price) => {
+        const isValid = validateItem(type, { name, price });
+        expect(isValid).toBe(type === 'product');
+      });
+      ```
+      
+      ✅ **APPROACH 2** - Keep complex structures with clear descriptions:
+      ```typescript
+      it.each([
+        ['complete product', { 
+          name: 'Chair', 
+          price: 99.99, 
+          category: 'furniture',
+          inStock: true,
+          dimensions: { width: 30, height: 45, depth: 25 }
+        }],
+        ['digital product', { 
+          name: 'Software License', 
+          price: 149.99,
+          category: 'digital',
+          downloadSize: '2.4GB'
+        }]
+      ])('should validate %s', (description, productData) => {
+        const result = validateProduct(productData);
+        expect(result.isValid).toBe(true);
+      });
+      ```
+
+      ### 5. Use Array Format for Simple Cases
+      
+      ✅ **GOOD** - For simple test cases:
+      ```typescript
+      it.each([
+        ['lowercase username', 'johndoe'],
+        ['mixed case username', 'JohnDoe']
+      ])('should normalize %s: "%s"', (_, username) => {
+        expect(normalizeUsername(username)).toBe(username.toLowerCase());
+      });
+      ```
+
+      ### 6. Group Related Test Cases
+      
+      ✅ **GOOD** - Group similar test cases together:
+      ```typescript
+      describe('password validation', () => {
+        it.each([
+          ['with minimum length', 'Pass123!'],
+          ['with special characters', 'Abcdef1@3']
+        ])('should accept valid password %s: "%s"', (_, password) => {
+          expect(validatePassword(password)).toBe(true);
+        });
+
+        it.each([
+          ['too short', 'Abc1!'],
+          ['no uppercase', 'password123!'],
+          ['no numbers', 'Password!'],
+          ['no special chars', 'Password123']
+        ])('should reject invalid password %s: "%s"', (_, password) => {
+          expect(validatePassword(password)).toBe(false);
+        });
+      });
+      ```
+
+      ### 7. Use Descriptive Test Names
+      
+      ❌ **AVOID** generic test names:
+      ```typescript
+      it.each([...])('test case %s', (input) => {
+        expect(processData(input)).toBeDefined();
+      });
+      ```
+      
+      ✅ **BETTER** - Use descriptive test names:
+      ```typescript
+      it.each([...])('should calculate correct tax for %s', (_, amount) => {
+        expect(calculateTax(amount)).toBeCloseTo(amount * 0.08);
+      });
+      ```
+
+      ### 8. Keep Test Data Close to Tests
+      
+      ❌ **AVOID** defining test data far from tests:
+      ```typescript
+      const phoneNumberTestCases = [
+        ['US format', '(123) 456-7890'],
+        ['international format', '+1-123-456-7890']
+      ];
+      
+      // ... many lines later ...
+      
+      it.each(phoneNumberTestCases)('should validate %s', (_, phoneNumber) => {
+        expect(validatePhoneNumber(phoneNumber)).toBe(true);
+      });
+      ```
+      
+      ✅ **BETTER** - Keep test data close to tests:
+      ```typescript
+      it.each([
+        ['US format', '(123) 456-7890'],
+        ['international format', '+1-123-456-7890']
+      ])('should validate %s: "%s"', (_, phoneNumber) => {
+        expect(validatePhoneNumber(phoneNumber)).toBe(true);
+      });
+      ```
+
+examples:
+  - input: |
+      it.each([
+        ['pass', 'valid-input', true],
+        ['fail', 'invalid-input', false]
+      ])('should %s when testing "%s"', (_, input, expected) => {
+        expect(validate(input)).toBe(expected);
+      });
+    output: |
+      it.each([
+        ['valid input 1', 'valid-input-1'],
+        ['valid input 2', 'valid-input-2']
+      ])('should pass when %s: "%s"', (_, input) => {
+        expect(validate(input)).toBe(true);
+      });
+
+      it.each([
+        ['invalid input 1', 'invalid-input-1'],
+        ['invalid input 2', 'invalid-input-2']
+      ])('should fail when %s: "%s"', (_, input) => {
+        expect(validate(input)).toBe(false);
+      });
+
+  - input: |
+      const testCases = [
+        { type: 'user', data: { name: 'John', age: 30 }, expected: true },
+        { type: 'admin', data: { name: 'Jane', age: 25 }, expected: false }
+      ];
+      
+      it.each(testCases)('should validate %s', (testCase) => {
+        expect(validate(testCase.type, testCase.data)).toBe(testCase.expected);
+      });
+    output: |
+      it.each([
+        ['user account', 'user', 'John', 30],
+        ['admin account', 'admin', 'Jane', 25]
+      ])('should validate %s: type=%s name=%s age=%d', (_, type, name, age) => {
+        expect(validate(type, { name, age })).toBe(type === 'user');
+      });
+
+metadata:
+  priority: high
+  version: 1.0
+  tags:
+    - testing
+    - best-practices
+</rule> 

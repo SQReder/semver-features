@@ -1,302 +1,283 @@
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import {
-  FeatureNameSchema,
-  SemverRangeSchema,
-  FeatureSchema,
-  FeaturesJsonSchema,
+  Feature,
+  FeatureName,
+  featureNameSchema,
+  featureSchema,
+  FeaturesJson,
+  featuresJsonSchema,
+  SemverRange,
+  semverRangeSchema,
   VALID_FEATURE_NAME_REGEX
 } from '../src/schema';
-import { z } from 'zod';
-
-// Helper function to test schema validation
-function expectValidation<T>(
-  schema: z.ZodType<T>,
-  value: unknown,
-  shouldPass: boolean
-): void {
-  const result = schema.safeParse(value);
-  expect(result.success).toBe(shouldPass);
-}
 
 describe('FeatureNameSchema', () => {
-  it('should validate valid feature names', () => {
-    // Arrange
-    const validNames = [
-      'feature',
-      'featureOne',
-      'feature1',
-      'feature_name',
-      'feature-name',
-      'a123'
-    ];
-
-    // Act & Assert
-    validNames.forEach(name => {
-      expectValidation(FeatureNameSchema, name, true);
-    });
-  });
-
-  it('should reject invalid feature names not starting with a letter', () => {
-    // Arrange
-    const invalidNames = [
-      '123feature',
-      '_feature',
-      '-feature',
-      '1feature'
-    ];
-
-    // Act & Assert
-    invalidNames.forEach(name => {
-      expectValidation(FeatureNameSchema, name, false);
-    });
-  });
-
-  it('should reject invalid feature names containing invalid characters', () => {
-    // Arrange
-    const invalidNames = [
-      'feature@name',
-      'feature.name',
-      'feature name',
-      'feature+name',
-      'feature$name'
-    ];
-
-    // Act & Assert
-    invalidNames.forEach(name => {
-      expectValidation(FeatureNameSchema, name, false);
-    });
-  });
-
-  it('should match the defined regex pattern', () => {
-    // Arrange
-    const regex = new RegExp(VALID_FEATURE_NAME_REGEX);
+  it.each([
+    'feature',
+    'featureOne',
+    'feature1',
+    'feature_name',
+    'feature-name',
+    'a123'
+  ])('should validate valid feature name: "%s"', (name) => {
+    const result = featureNameSchema.safeParse(name);
     
-    // Act & Assert
-    expect(regex.test('validFeature')).toBe(true);
-    expect(regex.test('123invalid')).toBe(false);
+    expect(result.success).toBe(true);
+  });
+
+  it.each([
+    '123feature',
+    '_feature',
+    '-feature',
+    '1feature'
+  ])('should reject invalid feature name not starting with a letter: "%s"', (name) => {
+    const result = featureNameSchema.safeParse(name);
+    
+    expect(result.success).toBe(false);
+  });
+
+  it.each([
+    'feature@name',
+    'feature.name',
+    'feature name',
+    'feature+name',
+    'feature$name'
+  ])('should reject invalid feature name containing invalid characters: "%s"', (name) => {
+    const result = featureNameSchema.safeParse(name);
+    
+    expect(result.success).toBe(false);
   });
 
   describe('VALID_FEATURE_NAME_REGEX', () => {
     it.each([
-      // test format: [testVerb, input, expectedResult]
-      ['pass', 'feature', true],
-      ['pass', 'myFeature123', true],
-      ['pass', 'f1', true],
-      ['pass', 'feature_with_underscore', true],
-      ['pass', 'feature-with-dash', true],
-      ['pass', 'feature\\with\\backslash', true],
-      ['pass', 'feature/with/slash', true],
-      ['pass', 'camelCaseFeature', true],
-      ['fail', '1invalidStart', false],
-      ['fail', '_invalidStart', false],
-      ['fail', '-invalidStart', false],
-      ['fail', 'invalid@character', false],
-      ['fail', 'invalid.character', false],
-      ['fail', 'invalid space', false],
-      ['fail', 'invalid$character', false],
-      ['fail', 'invalid#character', false]
-    ])('should %s when testing "%s"', (_, input, expected) => {
-      // Arrange & Act
+      'feature',
+      'myFeature123',
+      'f1',
+      'feature_with_underscore',
+      'feature-with-dash',
+      'feature\\with\\backslash',
+      'feature/with/slash',
+      'camelCaseFeature'
+    ])('should pass when testing valid feature name: "%s"', (input) => {
       const result = VALID_FEATURE_NAME_REGEX.test(input);
       
-      // Assert
-      expect(result).toBe(expected);
+      expect(result).toBe(true);
+    });
+
+    it.each([
+      '1invalidStart',
+      '_invalidStart',
+      '-invalidStart',
+      'invalid@character',
+      'invalid.character',
+      'invalid space',
+      'invalid$character',
+      'invalid#character'
+    ])('should fail when testing invalid feature name: "%s"', (input) => {
+      const result = VALID_FEATURE_NAME_REGEX.test(input);
+      
+      expect(result).toBe(false);
     });
   });
 });
 
 describe('SemverRangeSchema', () => {
   it.each([
-    // test format: [testVerb, input, expectedResult]
-    ['pass', '>=1.0.0', true],
-    ['pass', '1.x', true],
-    ['pass', '1.2.x', true],
-    ['pass', '^1.2.3', true],
-    ['pass', '~1.2.3', true],
-    ['pass', '1.2.3 - 2.3.4', true],
-    ['pass', '*', true],
-    ['pass', '>=1.0.0 <2.0.0', true],
-    ['pass', '1.0.0-beta', true],
-    ['fail', 'not-a-version', false],
-    ['fail', 'version 1', false],
-    ['fail', '##1.0.0', false]
-  ])('should %s when validating "%s"', (_, range, shouldBeValid) => {
-    // Arrange & Act & Assert
-    expectValidation(SemverRangeSchema, range, shouldBeValid);
+    ['standard semver', '>=1.0.0'],
+    ['wildcard major', '1.x'],
+    ['wildcard minor', '1.2.x'],
+    ['caret range', '^1.2.3'],
+    ['tilde range', '~1.2.3'],
+    ['version range', '1.2.3 - 2.3.4'],
+    ['any version', '*'],
+    ['complex range', '>=1.0.0 <2.0.0'],
+    ['prerelease version', '1.0.0-beta']
+  ])('should accept valid semver range: %s "%s"', (_, range) => {
+    const result = semverRangeSchema.safeParse(range);
+    
+    expect(result.success).toBe(true);
+  });
+
+  it.each([
+    ['non-semver format', 'not-a-version'],
+    ['spaces in version', 'version 1'],
+    ['invalid characters', '##1.0.0']
+  ])('should reject invalid semver range: %s "%s"', (_, range) => {
+    const result = semverRangeSchema.safeParse(range);
+    
+    expect(result.success).toBe(false);
   });
 });
 
 describe('FeatureSchema', () => {
   it('should validate a complete valid feature configuration', () => {
-    // Arrange
     const validFeature = {
-      name: 'testFeature',
+      name: 'testFeature' as FeatureName,
       description: 'Test feature description',
-      versionRange: '>=1.0.0',
-      enabledByDefault: true,
-      tags: ['tag1', 'tag2'],
+      versionRange: '>=1.0.0' as SemverRange,
       deprecated: false,
-      owners: ['owner1'],
       createdAt: '2023-01-01T00:00:00Z',
-      expiresAt: '2024-01-01T00:00:00Z'
-    };
+    } satisfies Feature;
 
-    // Act & Assert
-    expectValidation(FeatureSchema, validFeature, true);
+    const result = featureSchema.safeParse(validFeature);
+    
+    expect(result.success).toBe(true);
   });
 
   it('should validate a minimal valid feature configuration', () => {
-    // Arrange
     const minimalFeature = {
       name: 'testFeature',
       description: 'Test feature description',
       versionRange: '>=1.0.0'
     };
 
-    // Act & Assert
-    expectValidation(FeatureSchema, minimalFeature, true);
+    const result = featureSchema.safeParse(minimalFeature);
+    
+    expect(result.success).toBe(true);
   });
 
-  it('should apply default values for optional fields', () => {
-    // Arrange
-    const minimalFeature = {
-      name: 'testFeature',
+  it('should reject configuration with missing name', () => {
+    const feature = {
       description: 'Test feature description',
       versionRange: '>=1.0.0'
     };
-
-    // Act
-    const parsed = FeatureSchema.parse(minimalFeature);
-
-    // Assert
-    expect(parsed.enabledByDefault).toBe(false);
-    expect(parsed.deprecated).toBe(false);
+    
+    const result = featureSchema.safeParse(feature);
+    
+    expect(result.success).toBe(false);
   });
 
-  it('should reject configuration missing required fields', () => {
-    // Arrange
-    const missingNameFeature = {
-      description: 'Test feature description',
-      versionRange: '>=1.0.0'
-    };
-
-    const missingDescriptionFeature = {
+  it('should reject configuration with missing description', () => {
+    const feature = {
       name: 'testFeature',
       versionRange: '>=1.0.0'
     };
+    
+    const result = featureSchema.safeParse(feature);
+    
+    expect(result.success).toBe(false);
+  });
 
-    const missingVersionRangeFeature = {
+  it('should reject configuration with missing version range', () => {
+    const feature = {
       name: 'testFeature',
       description: 'Test feature description'
     };
-
-    // Act & Assert
-    expectValidation(FeatureSchema, missingNameFeature, false);
-    expectValidation(FeatureSchema, missingDescriptionFeature, false);
-    expectValidation(FeatureSchema, missingVersionRangeFeature, false);
+    
+    const result = featureSchema.safeParse(feature);
+    
+    expect(result.success).toBe(false);
   });
 
-  it('should validate date fields correctly', () => {
-    // Arrange
-    const featureWithValidDates = {
+  it('should validate feature with valid date fields', () => {
+    const feature = {
       name: 'testFeature',
       description: 'Test feature description',
       versionRange: '>=1.0.0',
       createdAt: '2023-01-01T00:00:00Z',
-      expiresAt: '2024-01-01T00:00:00Z'
     };
+    
+    const result = featureSchema.safeParse(feature);
+    
+    expect(result.success).toBe(true);
+  });
 
-    const featureWithInvalidDates = {
+  it('should reject feature with invalid date fields', () => {
+    const feature = {
       name: 'testFeature',
       description: 'Test feature description',
       versionRange: '>=1.0.0',
       createdAt: 'not-a-date',
-      expiresAt: '2024-01-01'
     };
-
-    // Act & Assert
-    expectValidation(FeatureSchema, featureWithValidDates, true);
-    expectValidation(FeatureSchema, featureWithInvalidDates, false);
+    
+    const result = featureSchema.safeParse(feature);
+    
+    expect(result.success).toBe(false);
   });
 });
 
 describe('FeaturesJsonSchema', () => {
   it('should validate a complete valid configuration', () => {
-    // Arrange
     const validConfig = {
       features: [
         {
-          name: 'feature1',
+          name: 'feature1' as FeatureName,
           description: 'Feature 1 description',
-          versionRange: '>=1.0.0',
-          enabledByDefault: true
+          versionRange: '>=1.0.0' as SemverRange,
         },
         {
-          name: 'feature2',
+          name: 'feature2' as FeatureName,
           description: 'Feature 2 description',
-          versionRange: '^2.0.0',
+          versionRange: '^2.0.0' as SemverRange,
           deprecated: true
         }
       ]
-    };
+    } satisfies FeaturesJson;
 
-    // Act & Assert
-    expectValidation(FeaturesJsonSchema, validConfig, true);
+    const result = featuresJsonSchema.safeParse(validConfig);
+    
+    expect(result.success).toBe(true);
   });
 
   it('should validate configuration with optional schema field', () => {
-    // Arrange
     const configWithSchema = {
       $schema: './schema.json',
       features: [
         {
-          name: 'feature1',
+          name: 'feature1' as FeatureName,
           description: 'Feature 1 description',
-          versionRange: '>=1.0.0'
+          versionRange: '>=1.0.0' as SemverRange,
         }
       ]
-    };
+    } satisfies FeaturesJson;
 
-    // Act & Assert
-    expectValidation(FeaturesJsonSchema, configWithSchema, true);
+    const result = featuresJsonSchema.safeParse(configWithSchema);
+    
+    expect(result.success).toBe(true);
   });
 
   it('should reject configuration with extra fields', () => {
-    // Arrange
     const configWithExtraFields = {
       $schema: './schema.json',
       features: [
         {
-          name: 'feature1',
+          name: 'feature1' as FeatureName,
           description: 'Feature 1 description',
-          versionRange: '>=1.0.0'
+          versionRange: '>=1.0.0' as SemverRange,
         }
       ],
+      // @ts-expect-error - extra field
       extraField: 'this should not be here'
-    };
+    } satisfies FeaturesJson;
 
-    // Act & Assert
-    expectValidation(FeaturesJsonSchema, configWithExtraFields, false);
+    const result = featuresJsonSchema.safeParse(configWithExtraFields);
+    
+    expect(result.success).toBe(false);
   });
 
-  it('should reject configuration with invalid features', () => {
-    // Arrange
-    const configWithInvalidFeatures = {
+  it('should accept configuration with empty features array', () => {
+    const config = {
+      features: []
+    } satisfies FeaturesJson;
+    
+    const result = featuresJsonSchema.safeParse(config);
+    
+    expect(result.success).toBe(true);
+  });
+  
+  it('should reject configuration with invalid feature name', () => {
+    const config = {
       features: [
         {
-          name: 'invalid-name!',
+          name: 'invalid-name!' as FeatureName,
           description: 'Feature with invalid name',
-          versionRange: '>=1.0.0'
+          versionRange: '>=1.0.0' as SemverRange,
         }
       ]
-    };
-
-    const emptyConfig = {
-      features: []
-    };
-
-    // Act & Assert
-    expectValidation(FeaturesJsonSchema, configWithInvalidFeatures, false);
-    expectValidation(FeaturesJsonSchema, emptyConfig, true);
+    } satisfies FeaturesJson;
+    
+    const result = featuresJsonSchema.safeParse(config);
+    
+    expect(result.success).toBe(false);
   });
 }); 

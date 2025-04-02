@@ -1,32 +1,28 @@
 # Validator Test Plan
 
 ## Overview
-This test plan covers the validation functionality in the `validator.ts` file, which provides validation for feature configuration objects against a schema.
+This test plan covers the validation logic for feature flag configurations, focusing on the `validateFeatureConfig` and `validateAndAssertConfig` functions.
 
 ## Plan
-Testing will focus on two main functions:
-1. `validateFeatureConfig` - Validates configuration objects and returns validation results
-2. `validateAndAssertConfig` - Validates and type guards configuration objects, throwing errors for invalid configs
+Testing will verify that the validation functions correctly identify valid and invalid configurations according to the schema requirements.
 
 ## Test Cases
 
-### validateFeatureConfig Tests
+### validateFeatureConfig
 - Should return valid result for valid configuration
-- Should return invalid result with errors for missing required fields
-- Should return invalid result with errors for invalid feature name format
-- Should return invalid result with errors for invalid semver range
-- Should return invalid result for non-object input
-- Should handle unexpected errors gracefully
+- Should validate feature name format (must start with a letter)
+- Should validate semver range format
+- Should require all mandatory fields
+- Should handle non-object inputs gracefully
+- Should handle unexpected errors (null/undefined inputs)
 
-### validateAndAssertConfig Tests
+### validateAndAssertConfig
 - Should return typed configuration for valid input
-- Should throw error with details for invalid input
+- Should throw descriptive error for invalid input
 - Should handle unexpected errors by throwing
 
 ## Implementation Notes
-- Follow AAA pattern (Arrange-Act-Assert)
-- Include only one assertion per test
-- Use descriptive test names following "should" format
-- Create mock valid and invalid configurations for testing
-- Test both success and error paths
-- Isolate tests from external dependencies 
+- Follow AAA pattern (Arrange-Act-Assert) with clear spacing
+- Use one assertion per test for clarity
+- Group similar test cases using it.each where appropriate
+- Test both happy paths and error cases 

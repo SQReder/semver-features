@@ -97,7 +97,7 @@ export class Feature {
     } else if (effectiveState instanceof Range) {
       return effectiveState.test(this.currentVersion);
     } else {
-      throw new Error("Invalid feature state");
+      throw new Error(`Invalid feature state: ${effectiveState}`);
     }
   }
 

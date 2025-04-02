@@ -1,0 +1,89 @@
+---
+description: Zod Schema Naming Convention
+globs: 
+alwaysApply: false
+---
+# Zod Schema Naming Convention
+
+Enforces a consistent naming convention for Zod schemas and their corresponding types.
+
+<rule>
+name: zod_schema_naming_convention
+description: Ensures Zod schemas use camelCase with 'Schema' suffix and their related types use PascalCase
+
+filters:
+  # Match TypeScript files
+  - type: file_extension
+    pattern: "\\.tsx?$"
+
+actions:
+  - type: suggest
+    message: |
+      ## Zod Schema Naming Convention
+      
+      Follow these conventions when defining Zod schemas and their types:
+      
+      ### Schema Variables
+      - Use camelCase with the 'Schema' suffix
+      - Example: `userSchema`, `accountSettingsSchema`
+      
+      ### Types from Schemas
+      - Use PascalCase (CapitalCase) for types
+      - Example: `type User = z.infer<typeof userSchema>`
+      
+      ### Examples
+      
+      ✅ Good:
+      ```typescript
+      // Good: camelCase with Schema suffix for schema variables
+      const userSchema = z.object({...});
+      const accountSettingsSchema = z.object({...});
+      
+      // Good: PascalCase for types
+      type User = z.infer<typeof userSchema>;
+      type AccountSettings = z.infer<typeof accountSettingsSchema>;
+      ```
+      
+      ❌ Bad:
+      ```typescript
+      // Bad: Missing 'Schema' suffix
+      const user = z.object({...});
+      
+      // Bad: PascalCase for schema variable
+      const UserSchema = z.object({...});
+      
+      // Bad: camelCase for type
+      type user = z.infer<typeof userSchema>;
+      ```
+
+examples:
+  - input: |
+      import { z } from "zod";
+      
+      // Schema without proper naming
+      const user = z.object({
+        id: z.number(),
+        name: z.string()
+      });
+      
+      // Type without proper naming
+      type user = z.infer<typeof userSchema>;
+    output: |
+      import { z } from "zod";
+      
+      // Schema with proper naming
+      const userSchema = z.object({
+        id: z.number(),
+        name: z.string()
+      });
+      
+      // Type with proper naming
+      type User = z.infer<typeof userSchema>;
+
+metadata:
+  priority: medium
+  version: 1.0
+  tags:
+    - typescript
+    - zod
+    - naming-convention 

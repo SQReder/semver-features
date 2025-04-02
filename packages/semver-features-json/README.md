@@ -43,19 +43,16 @@ First, create a JSON file that contains your feature definitions:
       "name": "newUI",
       "description": "New user interface components",
       "versionRange": "1.2.0",
-      "enabledByDefault": false
     },
     {
       "name": "analytics",
       "description": "Enhanced analytics engine",
-      "versionRange": "1.3.0",
-      "tags": ["performance", "tracking"]
+      "versionRange": "1.3.0"
     },
     {
       "name": "experimentalApi",
       "description": "Experimental API features",
       "versionRange": "1.5.0-beta.1",
-      "deprecated": false
     }
   ]
 }
@@ -80,16 +77,14 @@ const analytics = features.get('analytics');
 // const invalid = features.get('nonExistentFeature');
 
 // Check if a feature is enabled
-console.log('New UI enabled:', newUI?.isEnabled);  // true (1.3.5 >= 1.2.0)
-console.log('Analytics enabled:', analytics?.isEnabled);  // true (1.3.5 >= 1.3.0)
+console.log('New UI enabled:', newUI.isEnabled);  // true (1.3.5 >= 1.2.0)
+console.log('Analytics enabled:', analytics.isEnabled);  // true (1.3.5 >= 1.3.0)
 
 // Use the standard semver-features API
-if (newUI) {
-  newUI.execute({
-    enabled: () => console.log('Using new UI'),
-    disabled: () => console.log('Using classic UI')
-  });
-}
+newUI.execute({
+  enabled: () => console.log('Using new UI'),
+  disabled: () => console.log('Using classic UI')
+});
 ```
 
 ## Advanced Usage
@@ -101,24 +96,22 @@ The library inherits all the powerful transformation capabilities from the core 
 ```typescript
 const newUI = features.get('newUI');
 
-if (newUI) {
-  // Select different values based on feature status
-  const config = newUI.select({
-    enabled: { maxItems: 20, showPreview: true },
-    disabled: { maxItems: 10, showPreview: false }
-  });
+// Select different values based on feature status
+const config = newUI.select({
+  enabled: { maxItems: 20, showPreview: true },
+  disabled: { maxItems: 10, showPreview: false }
+});
 
-  // Value transformation
-  const result = newUI
-    .select({ 
-      enabled: userData,
-      disabled: "guest-user"
-    })
-    .map({ 
-      enabled: (data) => processUserData(data),
-      disabled: (id) => createGuestProfile(id)
-    });
-}
+// Value transformation
+const result = newUI
+  .select({ 
+    enabled: userData,
+    disabled: "guest-user"
+  })
+  .map({ 
+    enabled: (data) => processUserData(data),
+    disabled: (id) => createGuestProfile(id)
+  });
 ```
 
 ### Schema Validation
@@ -150,12 +143,8 @@ The feature configuration follows this schema:
   - **name** - Unique feature identifier (required)
   - **description** - Feature description (required)
   - **versionRange** - Semver version range (required)
-  - **enabledByDefault** - Whether feature is on by default (optional)
-  - **tags** - Array of categorization tags (optional)
   - **deprecated** - Whether feature is deprecated (optional)
-  - **owners** - Array of feature owners (optional)
   - **createdAt** - Creation timestamp (optional)
-  - **expiresAt** - Expiration timestamp (optional)
 
 ## API Reference
 
@@ -174,8 +163,8 @@ Creates a new JsonSemverFeatures instance from a JSON configuration object.
 Extends the SemverFeatures class with strong typing based on your JSON configuration.
 
 **Methods**:
-- `get(name)`: Get a feature by name (name is type-checked against JSON)
-- `isEnabled(name)`: Check if a feature is enabled
+- `get(name)`: Get a feature by name (name is type-checked against JSON). Throws an error if the feature does not exist.
+- `isEnabled(name)`: Check if a feature is enabled. Throws an error if the feature does not exist.
 - `getAllFeatures()`: Get all registered features
 
 ### `getSchema()`

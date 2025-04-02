@@ -5,14 +5,14 @@ import * as semver from "semver";
 export const VALID_FEATURE_NAME_REGEX = /^[a-zA-Z][\w\-\\\/]*$/;
 
 // Branded types
-export const FeatureNameSchema = z
+export const featureNameSchema = z
   .string()
   .regex(VALID_FEATURE_NAME_REGEX)
   .describe("Unique code name of the feature, must start with a letter and contain only alphanumeric characters, underscores, or hyphens")
   .brand("FeatureName");
 
 // Semver version range schema with validation
-export const SemverRangeSchema = z
+export const semverRangeSchema = z
   .string()
   .refine((val) => semver.validRange(val) !== null, {
     message: "String must be a valid semver range",
@@ -21,12 +21,12 @@ export const SemverRangeSchema = z
   .brand("SemverRange");
 
 // Feature schema definition
-export const FeatureSchema = z
+export const featureSchema = z
   .object({
     /**
      * Unique code name of the feature
      */
-    name: FeatureNameSchema,
+    name: featureNameSchema,
     /**
      * Human-readable description of what the feature does
      */
@@ -34,11 +34,11 @@ export const FeatureSchema = z
     /**
      * Semver range expression that specifies in which versions this feature is active
      */
-    versionRange: SemverRangeSchema,
+    versionRange: semverRangeSchema,
     /**
      * Indicates whether this feature is deprecated and scheduled for removal
      */
-    deprecated: z.boolean().default(false).describe("Indicates whether this feature is deprecated and scheduled for removal"),
+    deprecated: z.boolean().optional().describe("Indicates whether this feature is deprecated and scheduled for removal"),
     /**
      * ISO 8601 date-time when this feature was created
      */
@@ -47,7 +47,7 @@ export const FeatureSchema = z
   .strict();
 
 // Root schema definition
-export const FeaturesJsonSchema = z
+export const featuresJsonSchema = z
   .object({
     /**
      * Path to the schema file
@@ -56,14 +56,12 @@ export const FeaturesJsonSchema = z
     /**
      * Array of feature flag configurations
      */
-    features: z.array(FeatureSchema).describe("Array of feature flag configurations"),
+    features: z.array(featureSchema).describe("Array of feature flag configurations"),
   })
   .strict();
 
 // Type exports
-export type JsonFeatureName = z.infer<typeof FeatureNameSchema>;
-export type JsonSemverRange = z.infer<typeof SemverRangeSchema>;
-export type JsonFeature = z.infer<typeof FeatureSchema>;
-export type FeaturesJson = z.infer<typeof FeaturesJsonSchema>;
-
-export default FeaturesJsonSchema;
+export type FeatureName = z.infer<typeof featureNameSchema>;
+export type SemverRange = z.infer<typeof semverRangeSchema>;
+export type Feature = z.infer<typeof featureSchema>;
+export type FeaturesJson = z.infer<typeof featuresJsonSchema>;

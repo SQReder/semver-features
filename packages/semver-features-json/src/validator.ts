@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import schema from './schema';
+import { featuresJsonSchema } from './schema';
 import { FeatureFlagsConfig, ValidationResult } from './types';
 
 /**
@@ -9,7 +9,7 @@ import { FeatureFlagsConfig, ValidationResult } from './types';
  */
 export function validateFeatureConfig(config: unknown): ValidationResult {
   try {
-    schema.parse(config);
+    featuresJsonSchema.parse(config);
     return { valid: true, errors: [] };
   } catch (error: unknown) {
     if (error instanceof z.ZodError) {
@@ -48,6 +48,6 @@ export function validateAndAssertConfig(config: unknown): FeatureFlagsConfig {
   }
   
   // Parse with zod to ensure the type is correct
-  const validatedConfig = schema.parse(config);
+  const validatedConfig = featuresJsonSchema.parse(config);
   return validatedConfig as unknown as FeatureFlagsConfig;
 } 
