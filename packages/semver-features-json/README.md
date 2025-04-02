@@ -42,7 +42,7 @@ First, create a JSON file that contains your feature definitions:
     {
       "name": "newUI",
       "description": "New user interface components",
-      "versionRange": "1.2.0",
+      "versionRange": "1.2.0"
     },
     {
       "name": "analytics",
@@ -52,7 +52,7 @@ First, create a JSON file that contains your feature definitions:
     {
       "name": "experimentalApi",
       "description": "Experimental API features",
-      "versionRange": "1.5.0-beta.1",
+      "versionRange": "1.5.0-beta.1"
     }
   ]
 }
@@ -74,7 +74,7 @@ const newUI = features.get('newUI');  // TypeScript knows this is a valid featur
 const analytics = features.get('analytics');
 
 // This would be a TypeScript error!
-// const invalid = features.get('nonExistentFeature');
+// const invalid = features.get('nonExistentFeature');  // Error: Type '"nonExistentFeature"' is not assignable to parameter of type '"newUI" | "analytics" | "experimentalApi"'
 
 // Check if a feature is enabled
 console.log('New UI enabled:', newUI.isEnabled);  // true (1.3.5 >= 1.2.0)
@@ -116,35 +116,42 @@ const result = newUI
 
 ### Schema Validation
 
-The library uses Zod for schema validation, providing robust runtime type checking. You can access the schema directly:
+The library uses Zod for schema validation, providing robust runtime type checking. You can access the schemas directly:
 
 ```typescript
-import { getSchema, validateFeatureConfig } from 'semver-features-json';
+import { featuresJsonSchema, featureSchema, validateFeatureConfig } from 'semver-features-json';
 
-// Get the Zod schema
-const featureSchema = getSchema();
+// Get the Zod schemas
+const rootSchema = featuresJsonSchema;
+const singleFeatureSchema = featureSchema;
 
-// Use it for validation or type inference
-const isValid = featureSchema.safeParse(someConfig).success;
+// Use them for validation or type inference
+const isValid = featuresJsonSchema.safeParse(someConfig).success;
 
 // Validate your configuration
 const validationResult = validateFeatureConfig(myConfig);
 if (!validationResult.valid) {
   console.error('Invalid configuration:', validationResult.errors);
 }
+
+// Strongly type your data with schema types
+import { FeaturesJson, Feature } from 'semver-features-json';
+const typedConfig: FeaturesJson = featuresJsonSchema.parse(myConfig);
 ```
 
 ### Schema Reference
 
 The feature configuration follows this schema:
 
-- **$schema** - Optional path to schema file
-- **features** - Array of feature definitions
-  - **name** - Unique feature identifier (required)
-  - **description** - Feature description (required)
-  - **versionRange** - Semver version range (required)
-  - **deprecated** - Whether feature is deprecated (optional)
-  - **createdAt** - Creation timestamp (optional)
+- **$schema** (optional) - Path to schema file
+- **features** (required) - Array of feature definitions:
+  - **name** (required) - Unique feature identifier, must start with a letter and contain only alphanumeric characters, underscores, or hyphens
+  - **description** (required) - Feature description
+  - **versionRange** (required) - Semver version range string
+  - **deprecated** (optional) - Boolean indicating whether feature is deprecated
+  - **createdAt** (optional) - ISO 8601 date-time string when feature was created
+
+The schema validation is performed using Zod with semver range validation.
 
 ## API Reference
 
@@ -164,14 +171,13 @@ Extends the SemverFeatures class with strong typing based on your JSON configura
 
 **Methods**:
 - `get(name)`: Get a feature by name (name is type-checked against JSON). Throws an error if the feature does not exist.
-- `isEnabled(name)`: Check if a feature is enabled. Throws an error if the feature does not exist.
-- `getAllFeatures()`: Get all registered features
+- `isEnabled(name)`: Check if a feature is enabled (name is type-checked). Throws an error if the feature does not exist.
+- `getAllFeatures()`: Get all registered features as a Map of feature names to Feature instances.
+- All methods from the base SemverFeatures class
 
-### `getSchema()`
+### Schema Functions
 
-Returns the Zod schema used for validation.
-
-### `validateFeatureConfig(config)`
+#### `validateFeatureConfig(config)`
 
 Validates a feature configuration object against the schema.
 
@@ -179,6 +185,34 @@ Validates a feature configuration object against the schema.
 - `config`: The configuration object to validate
 
 **Returns**: A validation result with success status and any errors
+
+#### `validateAndAssertConfig(config)`
+
+Validates and type guards the feature configuration.
+
+**Parameters**:
+- `config`: The configuration object to validate
+
+**Returns**: The validated configuration with type assertion
+**Throws**: Error if validation fails
+
+### Zod Schemas
+
+#### `featuresJsonSchema`
+
+The Zod schema used for validating the root configuration object.
+
+#### `featureSchema` 
+
+The Zod schema used for validating individual feature entries.
+
+#### `featureNameSchema`
+
+The Zod schema for feature names (must match the pattern: /^[a-zA-Z][\w\-\\\/]*$/).
+
+#### `semverRangeSchema`
+
+The Zod schema for validating semver range strings.
 
 ## Integration with semver-features
 
