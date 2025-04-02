@@ -1,5 +1,11 @@
 # semver-features
 
+## 3.0.1
+
+### Patch Changes
+
+- dbb0b9d: Code cleanup
+
 ## 3.0.0
 
 ### Minor Changes
