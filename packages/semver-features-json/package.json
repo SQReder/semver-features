@@ -1,6 +1,6 @@
 {
   "name": "semver-features-json",
-  "version": "3.0.0",
+  "version": "0.0.0",
   "description": "SemVer-Based Feature Toggle Library - JSON Schema Package",
   "type": "module",
   "private": true,

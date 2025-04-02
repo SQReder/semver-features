@@ -2,4 +2,4 @@
 "semver-features-json": major
 ---
 
-Firt release
+First release
