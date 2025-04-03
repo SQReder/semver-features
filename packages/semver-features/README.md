@@ -22,7 +22,9 @@ yarn add semver-features
 pnpm add semver-features
 ```
 
-## Basic Usage
+## Getting Started
+
+### Basic Setup
 
 ```typescript
 // Initialize the feature manager with explicit version (required)
@@ -35,22 +37,42 @@ const newUI = features.register('newUI', '1.2.0');          // Enabled in v1.2.0
 const analyticsEngine = features.register('analytics', '1.3.0'); // Enabled in v1.3.0+
 const experimentalApi = features.register('expApi', '1.5.0-beta.1'); // Enabled in v1.5.0-beta.1+
 
-// Explicitly enabled or disabled features
-const forceEnabledFeature = features.register('forceEnabled', true);  // Explicitly enabled
-const forceDisabledFeature = features.register('forceDisabled', false); // Explicitly disabled
-const environmentFeature = features.register('envFeature', 
-  Boolean(process.env.ENABLE_FEATURE)
-); // Based on environment
-
 // Check feature status
 console.log('New UI enabled:', newUI.isEnabled);             // true (1.3.5 >= 1.2.0)
 console.log('Analytics enabled:', analyticsEngine.isEnabled); // true (1.3.5 >= 1.3.0)
 console.log('Experimental API enabled:', experimentalApi.isEnabled); // false (1.3.5 < 1.5.0-beta.1)
-console.log('Force enabled feature:', forceEnabledFeature.isEnabled); // true (explicitly enabled)
-console.log('Force disabled feature:', forceDisabledFeature.isEnabled); // false (explicitly disabled)
 ```
 
-## Feature Conditional Execution
+### Explicit Feature Control
+
+You can explicitly enable or disable features regardless of version:
+
+```typescript
+// Explicitly enabled or disabled features
+const forceEnabledFeature = features.register('forceEnabled', true);  // Always enabled
+const forceDisabledFeature = features.register('forceDisabled', false); // Always disabled
+
+// Environment-based features
+const environmentFeature = features.register('envFeature', 
+  Boolean(process.env.ENABLE_FEATURE)
+); // Based on environment variable
+```
+
+## Core Feature API
+
+### Feature Checks
+
+The simplest way to use a feature is to check its enabled state:
+
+```typescript
+if (newUI.isEnabled) {
+  renderNewUI();
+} else {
+  renderLegacyUI();
+}
+```
+
+### Conditional Code Execution
 
 Execute different code paths based on feature availability:
 
@@ -78,9 +100,9 @@ newUI.when(() => {
 });
 ```
 
-## Value Transformation
+### Type-Safe Value Selection
 
-The library provides powerful value transformation capabilities through a functional programming inspired API:
+The library provides powerful value transformation capabilities:
 
 ```typescript
 // Select different values based on feature status
@@ -91,8 +113,53 @@ const config = newUI.select({
 
 // Access current value
 console.log(config.value.maxItems);
+```
 
-// Transform values with different output types (bifunctor map)
+### Type Guards for Compile-Time Safety
+
+Use dedicated type guards for precise type narrowing at compile-time:
+
+```typescript
+import { isEnabled, isDisabled } from 'semver-features';
+
+// Basic usage with consistent data shapes
+const featureValue = newUI.select({
+  enabled: { maxItems: 20, showPreview: true },
+  disabled: { maxItems: 10, showPreview: false }
+});
+
+if (isEnabled(featureValue)) {
+  // TypeScript knows featureValue.value is the "enabled" type here
+  console.log('Preview enabled:', featureValue.value.showPreview);  // true
+} else {
+  // TypeScript knows featureValue.value is the "disabled" type here
+  console.log('Preview enabled:', featureValue.value.showPreview);  // false
+}
+
+// Advanced usage with different data shapes
+const userInterface = newUI
+  .select({
+    enabled: { user: currentUser, theme: 'modern' },
+    disabled: { theme: 'classic' }
+  });
+
+if (isEnabled(userInterface)) {
+  // TypeScript knows we have the full user object here
+  setupModernInterface(userInterface.value.user, userInterface.value.theme);
+} else {
+  // TypeScript knows we only have theme here
+  setupClassicInterface(userInterface.value.theme);
+}
+```
+
+## Advanced Features
+
+### Value Transformation
+
+Transform feature-dependent values with a functional programming inspired API:
+
+```typescript
+// Transform values with different output types
 const result = newUI
   .select({ 
     enabled: userData,
@@ -103,7 +170,7 @@ const result = newUI
     disabled: (id) => createGuestProfile(id)
   });
 
-// Transform values to a common type (monadic fold)
+// Transform values to a common type
 const message = newUI
   .select({
     enabled: { user: currentUser, count: notifications.length },
@@ -115,9 +182,9 @@ const message = newUI
   });
 ```
 
-## External Feature Sources
+### External Feature Sources
 
-The library supports various sources for overriding feature states beyond version comparison:
+Override feature states from external sources:
 
 ```typescript
 import { 
@@ -148,7 +215,7 @@ const features = new SemverFeatures({
         const response = await fetch('/api/features');
         return response.json();
       },
-      fetchOnInit: true  // Automatically fetch states on initialization (default: true)
+      fetchOnInit: true  // Automatically fetch states on initialization
     })
   ]
 });
@@ -156,21 +223,9 @@ const features = new SemverFeatures({
 // Register features normally - sources will be checked first
 const newUI = features.register('newUI', '1.2.0');
 const analytics = features.register('analytics', '1.3.0');
-
-// Source precedence is determined by the order in the sources array
-// Earlier sources override later ones and version-based determination
 ```
 
-## Debugging Features
-
-```typescript
-// List all registered features and their states
-features.dumpFeatures();
-// Outputs an array with feature names and their enabled states:
-// [{ name: 'newUI', enabled: true }, { name: 'analytics', enabled: true }, ...]
-```
-
-## Versioned APIs
+### Versioned APIs
 
 Create versioned APIs with backward compatibility:
 
@@ -218,26 +273,33 @@ const userService = {
 const user = await userService.getUser('user123', { detailed: true });
 ```
 
-## Explicit Feature Toggling
+### Debugging Features
 
-In addition to version-based feature toggling, you can explicitly enable or disable features by passing boolean values:
+List all registered features and their states:
 
 ```typescript
-// Boolean values
-const alwaysOnFeature = features.register('alwaysOn', true);  // Explicitly enabled
-const alwaysOffFeature = features.register('alwaysOff', false);  // Explicitly disabled
-
-// Environment variables (converts to boolean)
-const envControlledFeature = features.register('envFeature', 
-  process.env.ENABLE_MY_FEATURE === 'true' // Ensure conversion to boolean
-);
+// List all registered features and their states
+features.dumpFeatures();
+// Outputs an array with feature names and their enabled states:
+// [{ name: 'newUI', enabled: true }, { name: 'analytics', enabled: true }, ...]
 ```
+
+## Technical Details
+
+### Feature Value Implementation
+
+The library uses a type-safe approach with an abstract `FeatureValue` base class and two concrete implementations:
+
+- `EnabledFeatureValue<E, D>` - Used when the feature is enabled, with `.value` typed as `E`
+- `DisabledFeatureValue<E, D>` - Used when the feature is disabled, with `.value` typed as `D`
+
+This allows for precise type narrowing through the type guard functions, ensuring type safety throughout your application.
+
+### Type Safety Enforcement
 
 The library enforces type safety by only accepting:
 - Valid SemVer strings (e.g., '1.0.0', '2.1.3-beta.1')
 - Boolean values (true or false)
-
-This prevents ambiguity and ensures that feature toggling behaves predictably across your application.
 
 ```typescript
 // ✅ Valid feature registrations
@@ -252,12 +314,15 @@ features.register('feature6', 'false');  // Not allowed
 features.register('feature7', 'enabled');  // Not allowed
 ```
 
-This functionality is particularly useful for:
+## Integrations
 
-- **Overriding version-based behavior** - Force features on/off regardless of version
-- **Environment-specific features** - Control features through environment variables
-- **Debug/development features** - Enable features only in specific environments
-- **A/B testing** - Control feature availability for specific users or contexts
+### React Integration
+
+For React applications, check out the [semver-features-react](https://www.npmjs.com/package/semver-features-react) package, which provides specialized React components and hooks for working with this library.
+
+### JSON Configuration
+
+For applications using JSON-based configuration, check out the [semver-features-json](https://www.npmjs.com/package/semver-features-json) package, which provides utilities for defining and loading feature toggles from JSON files.
 
 ## Benefits
 
@@ -269,10 +334,6 @@ This functionality is particularly useful for:
 - **Predictable releases** - Clear understanding of when features will activate
 - **Gradual migration** - Helps manage transition periods between implementations
 - **External control** - Toggle features via URL parameters, localStorage, or external APIs
-
-## React Integration
-
-For React applications, check out the [semver-features-react](https://www.npmjs.com/package/semver-features-react) package, which provides specialized React components and hooks for working with this library.
 
 ## License
 
