@@ -9,16 +9,13 @@ import { JsonSemverFeatures } from "./json-semver-features";
  * @param options Additional options for SemverFeatures
  * @returns A new JsonSemverFeatures instance
  */
-export function createSemverFeaturesJson<T extends object>(
+export function createSemverFeaturesJson<T extends FeatureFlagsConfig>(
   config: T,
   options: SemverFeaturesOptions
-): JsonSemverFeatures<T & FeatureFlagsConfig> {
+): JsonSemverFeatures<T> {
   // Validate the configuration
   const validatedConfig = validateAndAssertConfig(config);
 
   // Create the instance with the validated config
-  return new JsonSemverFeatures<T & FeatureFlagsConfig>(
-    config as T & FeatureFlagsConfig,
-    options
-  );
+  return new JsonSemverFeatures<T>(validatedConfig as T, options);
 }
