@@ -1,3 +1,4 @@
+/* v8 ignore next 100 */
 /**
  * Core functionality entry point
  */

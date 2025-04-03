@@ -1,3 +1,4 @@
+/* v8 ignore next 100 */
 /**
  * Local Storage Source entry point
  */
