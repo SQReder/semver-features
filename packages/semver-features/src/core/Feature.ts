@@ -14,16 +14,16 @@ import type {
 import { parseSourceValue } from "../sources/valueParser";
 
 /**
- * FeatureValue class for handling feature-dependent values and transformations
+ * Base FeatureValue class for handling feature-dependent values and transformations
  */
-export class FeatureValue<E, D> {
-  readonly value: E | D;
-  private readonly isEnabled: boolean;
+export abstract class FeatureValue<E, D> {
+  readonly isEnabled: boolean;
 
-  constructor(value: E | D, isEnabled: boolean) {
-    this.value = value;
+  constructor(isEnabled: boolean) {
     this.isEnabled = isEnabled;
   }
+
+  abstract get value(): E | D;
 
   /**
    * Transform both enabled and disabled values to new types
@@ -32,9 +32,11 @@ export class FeatureValue<E, D> {
    */
   map<NE, ND>(options: MapOptions<E, D, NE, ND>): FeatureValue<NE, ND> {
     if (this.isEnabled) {
-      return new FeatureValue<NE, ND>(options.enabled(this.value as E), true);
+      return new EnabledFeatureValue<NE, ND>(options.enabled(this.value as E));
     } else {
-      return new FeatureValue<NE, ND>(options.disabled(this.value as D), false);
+      return new DisabledFeatureValue<NE, ND>(
+        options.disabled(this.value as D)
+      );
     }
   }
 
@@ -49,6 +51,38 @@ export class FeatureValue<E, D> {
     } else {
       return options.disabled(this.value as D);
     }
+  }
+}
+
+/**
+ * FeatureValue subclass for enabled features
+ */
+export class EnabledFeatureValue<E, D> extends FeatureValue<E, D> {
+  readonly _value: E;
+
+  constructor(value: E) {
+    super(true);
+    this._value = value;
+  }
+
+  get value(): E {
+    return this._value;
+  }
+}
+
+/**
+ * FeatureValue subclass for disabled features
+ */
+export class DisabledFeatureValue<E, D> extends FeatureValue<E, D> {
+  readonly _value: D;
+
+  constructor(value: D) {
+    super(false);
+    this._value = value;
+  }
+
+  get value(): D {
+    return this._value;
   }
 }
 
@@ -120,11 +154,12 @@ export class Feature {
    * @param options Object containing values for enabled and disabled states
    * @returns A FeatureValue containing the appropriate value
    */
-  select<SE, SD>(options: SelectOptions<SE, SD>): FeatureValue<SE, SD> {
-    return new FeatureValue<SE, SD>(
-      this._isEnabled ? options.enabled : options.disabled,
-      this._isEnabled
-    );
+  select<E, D>(
+    options: SelectOptions<E, D>
+  ): EnabledFeatureValue<E, D> | DisabledFeatureValue<E, D> {
+    return this._isEnabled
+      ? new EnabledFeatureValue<E, D>(options.enabled)
+      : new DisabledFeatureValue<E, D>(options.disabled);
   }
 
   /**
@@ -146,3 +181,17 @@ export class Feature {
     return callback();
   }
 }
+
+// Example usage commented out
+// const feature = new Feature({
+//   name: "testFeature",
+//   currentVersion: new SemVer("1.0.0"),
+//   versionsRange: true,
+// });
+
+// const featureValue = feature.select({
+//   enabled: "enabled" as const,
+//   disabled: "disabled" as const,
+// });
+
+// If using type guards, import them from FeatureGuards.ts
