@@ -1,6 +1,6 @@
 {
   "name": "semver-features-react",
-  "version": "4.0.0",
+  "version": "3.1.0",
   "description": "SemVer-Based Feature Toggle Library - React Integration",
   "type": "module",
   "main": "./dist/index.js",
