@@ -1,5 +1,11 @@
 # semver-features
 
+## 3.1.0
+
+### Minor Changes
+
+- 1d2aa4e: Simplified type handling in the `createSemverFeaturesJson` function for better maintainability and type safety.
+
 ## 3.0.1
 
 ### Patch Changes

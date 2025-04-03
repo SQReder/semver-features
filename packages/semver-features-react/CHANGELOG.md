@@ -1,5 +1,12 @@
 # semver-features-react
 
+## 4.0.0
+
+### Patch Changes
+
+- Updated dependencies [1d2aa4e]
+  - semver-features@3.1.0
+
 ## 3.0.0
 
 ### Minor Changes

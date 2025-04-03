@@ -1,6 +1,6 @@
 {
   "name": "semver-features",
-  "version": "3.0.1",
+  "version": "3.1.0",
   "description": "SemVer-Based Feature Toggle Library - Core Package",
   "type": "module",
   "main": "./dist/index.js",
