@@ -6,7 +6,6 @@
 export { SemverFeatures } from "./core/SemverFeatures";
 export { Feature, FeatureValue } from "./core/Feature";
 export type { EnabledFeatureValue, DisabledFeatureValue } from "./core/Feature";
-export { isEnabled, isDisabled } from "./core/FeatureGuards";
 
 // Sources exports
 export {

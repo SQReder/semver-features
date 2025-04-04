@@ -115,20 +115,18 @@ const config = newUI.select({
 console.log(config.value.maxItems);
 ```
 
-### Type Guards for Compile-Time Safety
+### Type Narrowing Based on Feature State
 
-Use dedicated type guards for precise type narrowing at compile-time:
+TypeScript automatically narrows types based on the feature state:
 
 ```typescript
-import { isEnabled, isDisabled } from 'semver-features';
-
 // Basic usage with consistent data shapes
 const featureValue = newUI.select({
   enabled: { maxItems: 20, showPreview: true },
   disabled: { maxItems: 10, showPreview: false }
 });
 
-if (isEnabled(featureValue)) {
+if (featureValue.isEnabled) {
   // TypeScript knows featureValue.value is the "enabled" type here
   console.log('Preview enabled:', featureValue.value.showPreview);  // true
 } else {
@@ -143,7 +141,7 @@ const userInterface = newUI
     disabled: { theme: 'classic' }
   });
 
-if (isEnabled(userInterface)) {
+if (userInterface.isEnabled) {
   // TypeScript knows we have the full user object here
   setupModernInterface(userInterface.value.user, userInterface.value.theme);
 } else {

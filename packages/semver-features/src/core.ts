@@ -5,4 +5,3 @@
 export { SemverFeatures } from "./core/SemverFeatures";
 export { Feature, FeatureValue } from "./core/Feature"; 
 export { asRange } from "./utils/asRange";
-export { isEnabled, isDisabled } from "./core/FeatureGuards";
