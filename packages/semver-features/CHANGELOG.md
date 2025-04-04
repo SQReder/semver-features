@@ -1,5 +1,15 @@
 # semver-features
 
+## 4.0.0
+
+### Major Changes
+
+- d2f0f39: Get rid of redundant type guards. Value type now automatically narrowed by typescript
+
+### Minor Changes
+
+- dad2e65: Add ability to skip disabled value for feature.select and one of mapping in feature.map. Also improve encapsulation and types, so type guards are redundant now
+
 ## 3.1.0
 
 ### Minor Changes
