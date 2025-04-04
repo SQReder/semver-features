@@ -5,9 +5,60 @@ A SemVer-Based Feature Toggle Library for automatically enabling features based 
 [![npm version](https://img.shields.io/npm/v/semver-features.svg)](https://www.npmjs.com/package/semver-features)
 [![license](https://img.shields.io/npm/l/semver-features.svg)](./LICENSE)
 
+## Table of Contents
+- [Overview](#overview)
+- [When to Use](#when-to-use)
+- [Installation](#installation)
+- [Getting Started](#getting-started)
+  - [Basic Setup](#basic-setup)
+  - [Explicit Feature Control](#explicit-feature-control)
+- [Integrations](#integrations)
+  - [React Integration](#react-integration)
+  - [JSON Configuration](#json-configuration)
+- [Core Feature API](#core-feature-api)
+  - [Feature Checks](#feature-checks)
+  - [Conditional Code Execution](#conditional-code-execution)
+  - [Type-Safe Value Selection](#type-safe-value-selection)
+  - [Type Narrowing Based on Feature State](#type-narrowing-based-on-feature-state)
+- [Advanced Features](#advanced-features)
+  - [Value Transformation](#value-transformation)
+  - [External Feature Sources](#external-feature-sources)
+  - [Versioned APIs](#versioned-apis)
+  - [Debugging Features](#debugging-features)
+- [Real-World Example](#real-world-example)
+- [Technical Details](#technical-details)
+  - [Feature Value Implementation](#feature-value-implementation)
+  - [Optional Disabled State](#optional-disabled-state)
+  - [Optional Transforms](#optional-transforms)
+  - [Type Safety Enforcement](#type-safety-enforcement)
+- [Benefits](#benefits)
+- [License](#license)
+
 ## Overview
 
-`semver-features` provides an elegant solution for automatically enabling features based on semantic versioning. Instead of manually managing feature flags across different releases, it uses the application version to determine which features should be active. This approach streamlines release management, especially when developing multiple parallel releases.
+`semver-features` provides an elegant solution for automatically enabling features based on semantic versioning. Instead of manually managing feature flags across different releases, it uses the application version to determine which features should be active. 
+
+**Key advantages:**
+- No backend infrastructure required - Works entirely on the client-side
+- Zero-configuration feature activation based on version numbers
+- Automatic feature enablement when deploying new versions
+- Clean API for versioned feature implementation
+- Simplified release management for parallel development streams
+
+This approach streamlines release management, especially when developing multiple parallel releases.
+
+## When to Use
+
+`semver-features` is ideal for:
+
+- **Backend-free deployments** - When you can't implement or afford external backend-based feature flag systems like LaunchDarkly, Split.io, or Optimizely. But [Batteries included](#external-feature-sources)
+- **Progressive rollouts** - When you want features to automatically activate in newer versions
+- **API versioning** - Creating backward-compatible APIs that evolve over time
+- **Multiple release branches** - When you're developing features that should only be active in specific versions
+- **Migration periods** - Supporting multiple implementations during transition periods
+- **Simple client-only apps** - For applications where server-side feature flag management would be overkill
+- **Feature deprecation** - Managing the lifecycle of features from experimental to stable to deprecated
+- **Local development** - Simulating different production versions during development without changing environment variables
 
 ## Installation
 
@@ -57,6 +108,51 @@ const environmentFeature = features.register('envFeature',
   Boolean(process.env.ENABLE_FEATURE)
 ); // Based on environment variable
 ```
+
+## Integrations
+
+### React Integration
+
+For React applications, check out the [semver-features-react](https://www.npmjs.com/package/semver-features-react) package, which provides specialized React components and hooks for working with this library.
+
+```tsx
+// Example React usage with semver-features-react
+import { SemverFeatures } from 'semver-features';
+import { FeatureToggle, FeatureEnabled, FeatureDisabled } from 'semver-features-react';
+
+// Initialize the feature manager with current app version
+const features = new SemverFeatures({ version: '1.3.5' });
+
+// Register features with minimum version requirements
+const newUI = features.register('newUI', '1.2.0');
+const analyticsEngine = features.register('analytics', '1.3.0');
+
+// Using FeatureToggle component for declarative toggling
+function Dashboard() {
+  return (
+    <FeatureToggle 
+      feature={newUI}
+      enabled={<NewDashboard />}
+      disabled={<LegacyDashboard />}
+    />
+  );
+}
+
+// Render content only when a feature is enabled
+function App() {
+  return (
+    <div>
+      <FeatureEnabled feature={analyticsEngine}>
+        <AnalyticsProvider />
+      </FeatureEnabled>
+    </div>
+  );
+}
+```
+
+### JSON Configuration
+
+For applications using JSON-based configuration, check out the [semver-features-json](https://www.npmjs.com/package/semver-features-json) package, which provides utilities for defining and loading feature toggles from JSON files.
 
 ## Core Feature API
 
@@ -282,6 +378,134 @@ features.dumpFeatures();
 // [{ name: 'newUI', enabled: true }, { name: 'analytics', enabled: true }, ...]
 ```
 
+## Real-World Example
+
+Here's a complete example showing how semver-features can help manage a product going through version upgrades:
+
+```typescript
+// --- App initialization ---
+import { SemverFeatures } from 'semver-features';
+
+// Initialize with current app version (could come from package.json)
+const appVersion = '2.3.0';
+const features = new SemverFeatures({ version: appVersion });
+
+// --- Feature registration ---
+// Legacy features (already active)
+const basicUI = features.register('basicUI', '1.0.0');        // Initial release
+const userProfiles = features.register('profiles', '1.2.0');  // Added in v1.2
+
+// Current features
+const darkMode = features.register('darkMode', '2.0.0');      // Added in v2.0
+const analytics = features.register('analytics', '2.1.0');    // Added in v2.1
+const enhancedSearch = features.register('search', '2.3.0');  // Just added in v2.3
+
+// Upcoming features (not yet active)
+const aiSuggestions = features.register('ai', '2.4.0');       // Coming in v2.4
+const newCheckout = features.register('checkout', '3.0.0');   // Major update in v3.0
+
+// --- Feature usage in application ---
+function initializeApp() {
+  // Core app setup
+  setupBasicApp();
+  
+  // Features enabled based on version
+  darkMode.when(() => {
+    console.log('Setting up dark mode support');
+    setupThemeSystem();
+    addDarkModeToggle();
+  });
+  
+  analytics.when(() => {
+    console.log('Initializing analytics');
+    initAnalytics();
+  });
+  
+  enhancedSearch.when(() => {
+    console.log('Using enhanced search');
+    setupAdvancedSearch();
+  });
+  
+  // Features that will be skipped in current version
+  aiSuggestions.when(() => {
+    console.log('Setting up AI suggestions');
+    initAiEngine();
+  });
+  
+  newCheckout.when(() => {
+    console.log('Using new checkout flow');
+    setupNewCheckout();
+  });
+}
+
+// --- Feature Decision Flow ---
+function renderUserProfile(userId) {
+  // Base functionality always works
+  const profile = loadUserProfile(userId);
+  
+  return enhancedSearch
+    .select({
+      // Enhanced search in v2.3+
+      enabled: {
+        profile,
+        searchIndex: buildUserSearchIndex(profile),
+        showExtraFields: true
+      },
+      // Basic display in earlier versions
+      disabled: {
+        profile,
+        showExtraFields: false
+      }
+    })
+    .fold({
+      enabled: (data) => renderEnhancedProfile(data),
+      disabled: (data) => renderBasicProfile(data)
+    });
+}
+
+// --- Helper functions referenced above ---
+function setupBasicApp() { /* ... */ }
+function setupThemeSystem() { /* ... */ }
+function addDarkModeToggle() { /* ... */ }
+function initAnalytics() { /* ... */ }
+function setupAdvancedSearch() { /* ... */ }
+function initAiEngine() { /* ... */ }
+function setupNewCheckout() { /* ... */ }
+function loadUserProfile(id) { return { id, name: 'Test User' }; }
+function buildUserSearchIndex(profile) { return { /* ... */ }; }
+function renderEnhancedProfile(data) { return `Enhanced profile for ${data.profile.name}`; }
+function renderBasicProfile(data) { return `Basic profile for ${data.profile.name}`; }
+
+// --- Initialize app ---
+initializeApp();
+```
+
+**Feature Decision Flow Diagram:**
+
+```
+                      ┌───────────────┐
+                      │ App Version   │
+                      │    2.3.0      │
+                      └───────┬───────┘
+                              │
+              ┌───────────────┴──────────────┐
+              │                              │
+     ┌────────▼─────────┐         ┌─────────▼────────┐
+     │  Feature Check   │         │  Feature Check   │
+     │   darkMode       │         │   aiSuggestions  │
+     │   (>= 2.0.0)     │         │   (>= 2.4.0)     │
+     └────────┬─────────┘         └─────────┬────────┘
+              │                              │
+      ┌───────▼─────────┐          ┌────────▼────────┐
+      │    ENABLED      │          │    DISABLED     │
+      └───────┬─────────┘          └─────────────────┘
+              │                    (Skip AI features)
+   ┌──────────▼───────────┐
+   │  Execute darkMode    │
+   │  feature code path   │
+   └──────────────────────┘
+```
+
 ## Technical Details
 
 ### Feature Value Implementation
@@ -382,16 +606,6 @@ features.register('feature5', 'true');  // Not allowed
 features.register('feature6', 'false');  // Not allowed
 features.register('feature7', 'enabled');  // Not allowed
 ```
-
-## Integrations
-
-### React Integration
-
-For React applications, check out the [semver-features-react](https://www.npmjs.com/package/semver-features-react) package, which provides specialized React components and hooks for working with this library.
-
-### JSON Configuration
-
-For applications using JSON-based configuration, check out the [semver-features-json](https://www.npmjs.com/package/semver-features-json) package, which provides utilities for defining and loading feature toggles from JSON files.
 
 ## Benefits
 
