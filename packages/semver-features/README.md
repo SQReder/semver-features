@@ -295,6 +295,77 @@ The library uses a type-safe approach with an abstract `FeatureValue` base class
 
 This allows for precise type narrowing through the type guard functions, ensuring type safety throughout your application.
 
+### Optional Disabled State
+
+The `select` method intentionally requires the `enabled` value while making the `disabled` value optional:
+
+```typescript
+// REQUIRED: enabled - defines what happens when the feature is ON
+// OPTIONAL: disabled - defines what happens when the feature is OFF (if needed)
+const result = feature.select({
+  enabled: "New feature is active"
+  // No disabled value = do nothing when feature is off
+});
+```
+
+This asymmetric design directly reflects the fundamental purpose of feature flags:
+
+1. **Why enabled is required:**
+   - It defines the new functionality being introduced
+   - Without it, the feature flag has no purpose
+   - It's what users will experience when the feature is active
+
+2. **Why disabled can be optional:**
+   - Many features simply add new functionality rather than replacing existing behavior
+   - The fallback behavior is often "do nothing" which requires no explicit definition
+   - It enables cleaner, less verbose code when no special fallback is needed
+
+**Behavior when disabled value is omitted:**
+- TypeScript treats the disabled value type as `never` for type safety
+- At runtime, accessing `result.value` when the feature is off returns `undefined`
+- The type system prevents accidentally using the value when the feature is disabled
+
+```typescript
+// Example usage with omitted disabled value
+if (feature.isEnabled) {
+  // Safe to use result.value
+  console.log(result.value); // "New feature is active"
+} else {
+  // TypeScript warns about accessing result.value here
+  // At runtime, result.value would be undefined
+}
+```
+
+### Optional Transforms
+
+For `map` operations, you can omit either the `enabled` or `disabled` transform function (but at least one must be provided), which will use an identity function instead:
+
+```typescript
+// Only specify the enabled transform when disabled transform isn't needed
+const result = feature.select({
+  enabled: { count: 5 },
+  disabled: "original"
+}).map({
+  enabled: data => ({ ...data, count: data.count * 2 })
+  // Disabled transform is optional - will default to identity function
+});
+
+// Only specify the disabled transform when enabled transform isn't needed
+const result = feature.select({
+  enabled: "original",
+  disabled: { count: 5 }
+}).map({
+  // Enabled transform is optional - will default to identity function
+  disabled: data => ({ ...data, count: data.count * 2 })
+});
+
+// For enabled features, transformation is applied to the enabled value
+// For disabled features, transformation is applied to the disabled value
+// When a transform is omitted, the original value remains unchanged
+```
+
+This approach reduces boilerplate when you're only processing one path and simplifies working with features.
+
 ### Type Safety Enforcement
 
 The library enforces type safety by only accepting:

@@ -10,46 +10,34 @@ describe("FeatureGuards", () => {
    */
   describe("type guard detection", () => {
     it("should correctly identify EnabledFeatureValue instances with isEnabled", () => {
-      // Arrange
       const enabledValue = new EnabledFeatureValue<string, number>("test");
       
-      // Act
       const result = isEnabled(enabledValue);
       
-      // Assert
       expect(result).toBe(true);
     });
 
     it("should correctly reject DisabledFeatureValue instances with isEnabled", () => {
-      // Arrange
       const disabledValue = new DisabledFeatureValue<string, number>(42);
       
-      // Act
       const result = isEnabled(disabledValue);
       
-      // Assert
       expect(result).toBe(false);
     });
 
     it("should correctly identify DisabledFeatureValue instances with isDisabled", () => {
-      // Arrange
       const disabledValue = new DisabledFeatureValue<string, number>(42);
       
-      // Act
       const result = isDisabled(disabledValue);
       
-      // Assert
       expect(result).toBe(true);
     });
 
     it("should correctly reject EnabledFeatureValue instances with isDisabled", () => {
-      // Arrange
       const enabledValue = new EnabledFeatureValue<string, number>("test");
       
-      // Act
       const result = isDisabled(enabledValue);
       
-      // Assert
       expect(result).toBe(false);
     });
   });
@@ -59,7 +47,6 @@ describe("FeatureGuards", () => {
    */
   describe("type guard integration", () => {
     it("should work with values from Feature.select()", () => {
-      // Arrange
       const enabledFeature = new Feature({
         name: "enabled-feature",
         currentVersion: new SemVer("1.0.0"),
@@ -72,7 +59,6 @@ describe("FeatureGuards", () => {
         versionsRange: false,
       });
       
-      // Act
       const enabledValue = enabledFeature.select({ 
         enabled: "ON", 
         disabled: "OFF" 
@@ -83,7 +69,6 @@ describe("FeatureGuards", () => {
         disabled: "OFF" 
       });
       
-      // Assert
       expect(isEnabled(enabledValue)).toBe(true);
       expect(isDisabled(enabledValue)).toBe(false);
       expect(isEnabled(disabledValue)).toBe(false);
@@ -91,14 +76,12 @@ describe("FeatureGuards", () => {
     });
     
     it("should work with transformed values after using map()", () => {
-      // Arrange
       const feature = new Feature({
         name: "test-feature",
         currentVersion: new SemVer("1.0.0"),
         versionsRange: true,
       });
       
-      // Act
       const initialValue = feature.select({ 
         enabled: 42, 
         disabled: "disabled" 
@@ -109,7 +92,6 @@ describe("FeatureGuards", () => {
         disabled: str => str.length
       });
       
-      // Assert
       expect(isEnabled(transformedValue)).toBe(true);
       if (isEnabled(transformedValue)) {
         expect(transformedValue.value).toBe("42");
@@ -117,14 +99,12 @@ describe("FeatureGuards", () => {
     });
     
     it("should allow conditional handling based on feature state", () => {
-      // Arrange
       const feature = new Feature({
         name: "test-feature",
         currentVersion: new SemVer("1.0.0"),
         versionsRange: asRange(">=2.0.0"),
       });
       
-      // Act
       const featureValue = feature.select({ 
         enabled: { data: "enabled" }, 
         disabled: { error: "disabled" } 
@@ -137,8 +117,49 @@ describe("FeatureGuards", () => {
         result = featureValue.value.error;
       }
       
-      // Assert
       expect(result).toBe("disabled");
+    });
+  });
+
+  /**
+   * Type Guard Integration with Optional Fields
+   */
+  describe("type guard integration with optional fields", () => {
+    it("should work with values from Feature.select() with optional disabled field", () => {
+      const disabledFeature = new Feature({
+        name: "disabled-feature",
+        currentVersion: new SemVer("1.0.0"),
+        versionsRange: false,
+      });
+      
+      const disabledValue = disabledFeature.select({ 
+        enabled: "ON"
+      });
+      
+      expect(isEnabled(disabledValue)).toBe(false);
+      expect(isDisabled(disabledValue)).toBe(true);
+    });
+    
+    it("should work with transformed values after using map() with optional disabled transform", () => {
+      const feature = new Feature({
+        name: "test-feature",
+        currentVersion: new SemVer("1.0.0"),
+        versionsRange: false,
+      });
+      
+      const initialValue = feature.select({ 
+        enabled: 42, 
+        disabled: "disabled" 
+      });
+      
+      const transformedValue = initialValue.map({
+        enabled: num => num.toString(),
+      });
+      
+      expect(isDisabled(transformedValue)).toBe(true);
+      if (isDisabled(transformedValue)) {
+        expect(transformedValue.value).toBe("disabled");
+      }
     });
   });
 
@@ -147,11 +168,9 @@ describe("FeatureGuards", () => {
    */
   describe("runtime behavior", () => {
     it("should work with direct class instantiation", () => {
-      // Arrange
       const enabled = new EnabledFeatureValue<string, number>("direct");
       const disabled = new DisabledFeatureValue<string, number>(123);
       
-      // Act & Assert
       expect(isEnabled(enabled)).toBe(true);
       expect(isDisabled(disabled)).toBe(true);
     });

@@ -19,6 +19,10 @@ Testing will focus on ensuring that the type guards correctly identify the state
 - Test guards with transformed values (after using map())
 - Test guards in conditional expressions
 
+### Type Guard Integration with Optional Fields
+- Test guards with values from Feature.select() with optional disabled field
+- Test guards with transformed values after using map() with optional disabled transform
+
 ### Runtime Behavior
 - Test guards behave correctly with direct class instantiation
 - Test performance overhead is minimal 

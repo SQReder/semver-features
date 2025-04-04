@@ -11,6 +11,8 @@ Testing will focus on ensuring both Feature and FeatureValue classes handle all 
 - Value selection based on feature state
 - Value transformations (map and fold operations)
 - Conditional execution
+- Optional disabled field in select
+- Optional enabled/disabled transforms in map
 
 ## Test Cases
 
@@ -38,6 +40,8 @@ Testing will focus on ensuring both Feature and FeatureValue classes handle all 
 - Test correct value selection when feature is enabled
 - Test correct value selection when feature is disabled
 - Test with complex object values for both enabled and disabled states
+- Test with optional disabled field for disabled features
+- Test with nullable values and optional disabled field
 
 ### FeatureValue Transformation (map method)
 - Test mapping of enabled value with simple types
@@ -45,6 +49,13 @@ Testing will focus on ensuring both Feature and FeatureValue classes handle all 
 - Test mapping with different input/output types for enabled state
 - Test mapping with different input/output types for disabled state
 - Test mapping with complex object transformations
+- Test using identity function when disabled transform isn't provided for enabled feature
+- Test using identity function when disabled transform isn't provided for disabled feature
+- Test using identity function when enabled transform isn't provided for enabled feature
+- Test using identity function when enabled transform isn't provided for disabled feature
+- Test handling complex objects with identity transform for disabled value
+- Test handling complex objects with identity transform for enabled value
+- Test type validation enforces at least one transform function is provided
 
 ### FeatureValue Reduction (fold method)
 - Test fold operation on enabled value with simple types

@@ -404,6 +404,39 @@ describe("Feature", () => {
       // Assert
       expect(result.value).toEqual(disabledObject);
     });
+
+    it("should support optional disabled field for disabled features", () => {
+      const feature = new Feature({
+        name: "test-feature",
+        currentVersion: new SemVer("1.0.0"),
+        versionsRange: false,
+        sources: [],
+      });
+      
+      const result = feature.select({
+        enabled: "ON",
+      });
+      
+      expect(result.isEnabled).toBe(false);
+      expect(result.value).toBeUndefined();
+    });
+
+    it("should handle nullable values correctly with optional disabled field", () => {
+      const feature = new Feature({
+        name: "test-feature",
+        currentVersion: new SemVer("1.0.0"),
+        versionsRange: false,
+        sources: [],
+      });
+      
+      const result = feature.select({
+        enabled: { id: 123, name: "test" },
+        disabled: null,
+      });
+      
+      expect(result.isEnabled).toBe(false);
+      expect(result.value).toBeNull();
+    });
   });
 
   /**
@@ -512,6 +545,106 @@ describe("Feature", () => {
 
       // Assert
       expect(result.value).toEqual({ count: 10, label: "TEST" });
+    });
+
+    it("should use identity function when disabled transform isn't provided for enabled feature", () => {
+      const feature = new Feature({
+        name: "test-feature",
+        currentVersion: new SemVer("1.0.0"),
+        versionsRange: true,
+        sources: [],
+      });
+      
+      const result = feature.select({ enabled: 42, disabled: 0 }).map({
+        enabled: (n) => n + 1,
+      });
+      
+      expect(result.value).toBe(43);
+    });
+
+    it("should use identity function when disabled transform isn't provided for disabled feature", () => {
+      const feature = new Feature({
+        name: "test-feature",
+        currentVersion: new SemVer("1.0.0"),
+        versionsRange: false,
+        sources: [],
+      });
+      
+      const result = feature.select({ enabled: 42, disabled: "original" }).map({
+        enabled: (n) => n.toString(),
+      });
+      
+      expect(result.value).toBe("original");
+    });
+
+    it("should use identity function when enabled transform isn't provided for enabled feature", () => {
+      const feature = new Feature({
+        name: "test-feature",
+        currentVersion: new SemVer("1.0.0"),
+        versionsRange: true,
+        sources: [],
+      });
+      
+      const result = feature.select({ enabled: "original", disabled: 0 }).map({
+        disabled: (n) => n + 1,
+      });
+      
+      expect(result.value).toBe("original");
+    });
+
+    it("should use identity function when enabled transform isn't provided for disabled feature", () => {
+      const feature = new Feature({
+        name: "test-feature",
+        currentVersion: new SemVer("1.0.0"),
+        versionsRange: false,
+        sources: [],
+      });
+      
+      const result = feature.select({ enabled: "test", disabled: 42 }).map({
+        disabled: (n) => n * 2,
+      });
+      
+      expect(result.value).toBe(84);
+    });
+
+    it("should handle complex objects with identity transform for disabled value", () => {
+      const feature = new Feature({
+        name: "test-feature",
+        currentVersion: new SemVer("1.0.0"),
+        versionsRange: false,
+        sources: [],
+      });
+
+      const complexObject = { prop: "value", nested: { num: 123 } };
+      
+      const result = feature.select({ 
+        enabled: "enabled", 
+        disabled: complexObject 
+      }).map({
+        enabled: (s) => s.toUpperCase(),
+      });
+      
+      expect(result.value).toBe(complexObject);
+    });
+
+    it("should handle complex objects with identity transform for enabled value", () => {
+      const feature = new Feature({
+        name: "test-feature",
+        currentVersion: new SemVer("1.0.0"),
+        versionsRange: true,
+        sources: [],
+      });
+
+      const complexObject = { prop: "value", nested: { num: 123 } };
+      
+      const result = feature.select({ 
+        enabled: complexObject,
+        disabled: "disabled"
+      }).map({
+        disabled: (s) => s.toUpperCase(),
+      });
+      
+      expect(result.value).toBe(complexObject);
     });
   });
 

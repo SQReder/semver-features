@@ -30,13 +30,15 @@ export abstract class FeatureValue<E, D> {
    * @param options Object with transform functions for both states
    * @returns A new FeatureValue with transformed values
    */
-  map<NE, ND>(options: MapOptions<E, D, NE, ND>): FeatureValue<NE, ND> {
+  map<NE = E, ND = D>(options: MapOptions<E, D, NE, ND>): FeatureValue<NE, ND> {
     if (this.isEnabled) {
-      return new EnabledFeatureValue<NE, ND>(options.enabled(this.value as E));
+      // Use identity function if enabled transform isn't provided
+      const transform = options.enabled || ((x: E) => x as unknown as NE);
+      return new EnabledFeatureValue<NE, ND>(transform(this.value as E));
     } else {
-      return new DisabledFeatureValue<NE, ND>(
-        options.disabled(this.value as D)
-      );
+      // Use identity function if disabled transform isn't provided
+      const transform = options.disabled || ((x: D) => x as unknown as ND);
+      return new DisabledFeatureValue<NE, ND>(transform(this.value as D));
     }
   }
 
@@ -58,7 +60,9 @@ export abstract class FeatureValue<E, D> {
  * FeatureValue subclass for enabled features
  */
 export class EnabledFeatureValue<E, D> extends FeatureValue<E, D> {
-  readonly _value: E;
+  private readonly _value: E;
+  readonly isEnabled: true = true;
+
 
   constructor(value: E) {
     super(true);
@@ -74,7 +78,8 @@ export class EnabledFeatureValue<E, D> extends FeatureValue<E, D> {
  * FeatureValue subclass for disabled features
  */
 export class DisabledFeatureValue<E, D> extends FeatureValue<E, D> {
-  readonly _value: D;
+  private readonly _value: D;
+  readonly isEnabled: false = false;
 
   constructor(value: D) {
     super(false);
@@ -151,15 +156,18 @@ export class Feature {
 
   /**
    * Select between enabled and disabled values based on feature status
-   * @param options Object containing values for enabled and disabled states
-   * @returns A FeatureValue containing the appropriate value
+   * @param options Object containing values for enabled and disabled states.
+   *                The `enabled` value is required and represents the functionality when the feature is on.
+   *                The `disabled` value is optional and represents fallback behavior when the feature is off.
+   *                If `disabled` is omitted, the feature will effectively do nothing when turned off.
+   * @returns A FeatureValue containing the appropriate value based on the feature's enabled state
    */
-  select<E, D>(
+  select<E, D = never>(
     options: SelectOptions<E, D>
   ): EnabledFeatureValue<E, D> | DisabledFeatureValue<E, D> {
     return this._isEnabled
       ? new EnabledFeatureValue<E, D>(options.enabled)
-      : new DisabledFeatureValue<E, D>(options.disabled);
+      : new DisabledFeatureValue<E, D>(options.disabled as D);
   }
 
   /**
@@ -181,17 +189,3 @@ export class Feature {
     return callback();
   }
 }
-
-// Example usage commented out
-// const feature = new Feature({
-//   name: "testFeature",
-//   currentVersion: new SemVer("1.0.0"),
-//   versionsRange: true,
-// });
-
-// const featureValue = feature.select({
-//   enabled: "enabled" as const,
-//   disabled: "disabled" as const,
-// });
-
-// If using type guards, import them from FeatureGuards.ts

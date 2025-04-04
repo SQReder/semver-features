@@ -95,7 +95,7 @@ export interface RenderComponentOptions<T, U> {
 /**
  * Options for selecting between enabled and disabled values
  */
-export interface SelectOptions<T, U> {
+export interface SelectOptions<T, U = never> {
   /**
    * Value to use when feature is enabled
    */
@@ -103,24 +103,18 @@ export interface SelectOptions<T, U> {
 
   /**
    * Value to use when feature is disabled
+   * @optional When not provided, disabled value type is considered as `never`
    */
-  disabled: U;
+  disabled?: U;
 }
 
 /**
  * Options for mapping between enabled and disabled values
+ * At least one of the transform functions must be provided
  */
-export interface MapOptions<T, U, V, W> {
-  /**
-   * Function to transform the enabled value
-   */
-  enabled: (value: T) => V;
-
-  /**
-   * Function to transform the disabled value
-   */
-  disabled: (value: U) => W;
-}
+export type MapOptions<T, U, V = T, W = U> = 
+  | { enabled: (value: T) => V; disabled?: (value: U) => W }
+  | { enabled?: (value: T) => V; disabled: (value: U) => W };
 
 /**
  * Options for folding enabled and disabled values into a single result
