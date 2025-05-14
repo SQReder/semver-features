@@ -1,5 +1,5 @@
 import * as semver from "semver";
-import { asRange } from "../utils/asRange";
+import { tryAsRange } from "../utils/asRange";
 import type { FeatureAvailability } from "./types";
 
 /**
@@ -24,7 +24,7 @@ export function parseSourceValue(
 
   // Try parsing as semver
   if (semver.valid(value)) {
-    return asRange(value);
+    return tryAsRange(value);
   }
 
   return undefined;

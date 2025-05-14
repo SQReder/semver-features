@@ -2,12 +2,13 @@ import Range from "semver/classes/range";
 import valid from "semver/functions/valid";
 import validRange from "semver/ranges/valid";
 
-export function asRange(s: string): Range {
+export function tryAsRange(s: string): Range | false {
     if (valid(s)) {
       return new Range('>=' + s);
     } else if (validRange(s)) {
       return new Range(s);
     } else {
-      throw new Error(`Invalid range: ${s}`);
+      console.warn(`Invalid semver version or range: ${s}`);
+      return false;
     }
   }

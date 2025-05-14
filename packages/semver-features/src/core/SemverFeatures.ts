@@ -4,7 +4,7 @@
 
 import { SemVer } from 'semver';
 import type { FeatureStateSource } from '../sources/types';
-import { asRange } from '../utils/asRange';
+import { tryAsRange } from '../utils/asRange';
 import type { SemverFeaturesOptions } from '../utils/types';
 import { Feature } from './Feature';
 
@@ -75,7 +75,7 @@ export class SemverFeatures {
     // Create new feature
     const feature = new Feature({
       name,
-      versionsRange: typeof versionsRange === 'string' ? asRange(versionsRange) : versionsRange,
+      versionsRange: typeof versionsRange === 'string' ? tryAsRange(versionsRange) : versionsRange,
       currentVersion: this.version,
       sources: this.sources
     });

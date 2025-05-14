@@ -33,4 +33,4 @@ export type {
   RenderComponentOptions,
 } from "./utils/types";
 
-export { asRange } from "./utils/asRange";
+export { tryAsRange } from "./utils/asRange";
