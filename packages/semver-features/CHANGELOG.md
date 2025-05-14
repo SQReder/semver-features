@@ -1,5 +1,11 @@
 # semver-features
 
+## 4.0.1
+
+### Patch Changes
+
+- f4c9160: fix: allow to gibberish in feature version - fallback to false
+
 ## 4.0.0
 
 ### Major Changes
