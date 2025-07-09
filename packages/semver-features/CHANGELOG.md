@@ -1,5 +1,11 @@
 # semver-features
 
+## 4.0.2
+
+### Patch Changes
+
+- c54f6ad: bundle semver
+
 ## 4.0.1
 
 ### Patch Changes
